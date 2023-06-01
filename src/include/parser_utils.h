@@ -36,4 +36,9 @@ parser_utils_strcmpi(const char *s);
 void
 parser_utils_strcmpi_destroy(const struct parser_definition *p);
 
+/*
+* Imprime en salida estandard los datos de un evento
+*/
+void event_print(const struct parser_event * event);
+
 #endif

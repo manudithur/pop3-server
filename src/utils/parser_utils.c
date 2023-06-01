@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdio.h>
 
 #include "parser_utils.h"
 
@@ -141,4 +142,18 @@ parser_utils_strcmpi_destroy(const struct parser_definition *p) {
     free((void *)p->states[0]);
     free((void *)p->states);
     free((void *)p->states_n);
+}
+
+void 
+event_print(const struct parser_event * event){
+    if(event == NULL)
+        return;
+    
+    printf("TYPE: %s\nEVENT CHARS: ", parser_utils_strcmpi_event(event->type));
+
+    for(int i = 0; i < event -> n ; i++)
+        putchar(event->data[i]);
+    
+    putchar('\n');
+    event_print(event->next);
 }
