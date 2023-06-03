@@ -40,10 +40,17 @@
 #define TRUE   1
 #define FALSE  0
 #define PORT 8888
-#define MAX_SOCKETS 30
+#define MAX_SOCKETS 1000
 #define BUFFSIZE 1024
 #define PORT_UDP 8888
 #define MAX_PENDING_CONNECTIONS   3    // un valor bajo, para realizar pruebas
+#define POP3_PORT "5000"
+
+struct User{
+	char * wb;
+	char * rb;
+	int socket;
+};
 
 struct buffer {
 	char * buffer;
@@ -55,15 +62,11 @@ struct buffer {
   Se encarga de escribir la respuesta faltante en forma no bloqueante
   */
 void handleWrite(int socket, struct buffer * buffer, fd_set * writefds);
+
 /**
   Limpia el buffer de escritura asociado a un socket
   */
 void clear( struct buffer * buffer);
-
-/**
-  Crea y "bindea" el socket server UDP
-  */
-int udpSocket(int port);
 
 /**
   Lee el datagrama del socket, obtiene info asociado con getaddrInfo y envia la respuesta
@@ -71,12 +74,18 @@ int udpSocket(int port);
 void handleAddrInfo(int socket);
 
 
-int main(int argc , char *argv[])
-{
-	int opt = TRUE;
-	int master_socket[2];  // IPv4 e IPv6 (si estan habilitados)
-	int master_socket_size=0;
-	int addrlen , new_socket , client_socket[MAX_SOCKETS] , max_clients = MAX_SOCKETS , activity, i , sd;
+int main(int argc , char *argv[]){
+
+	close(STDIN_FILENO);
+
+	// TODO adaptar setupTCPServerSocket para que cree socket para IPv4 e IPv6 y ademas soporte opciones (y asi no repetir codigo)
+	int serverSocket = setupTCPServerSocket(POP3_PORT);
+	
+	int addrlen;
+	int new_socket;
+	int client_socket[MAX_SOCKETS];
+	int max_clients = MAX_SOCKETS;
+	int activity, i , sd;
 	long valread;
 	int max_sd;
 	struct sockaddr_in address;
@@ -84,116 +93,33 @@ int main(int argc , char *argv[])
 	struct sockaddr_storage clntAddr; // Client address
 	socklen_t clntAddrLen = sizeof(clntAddr);
 
-	char buffer[BUFFSIZE + 1];  //data buffer of 1K
+	char buffer[BUFFSIZE + 1];
 
-	//set of socket descriptors
+
 	fd_set readfds;
+	fd_set writefds;
 
 	// Agregamos un buffer de escritura asociado a cada socket, para no bloquear por escritura
 	struct buffer bufferWrite[MAX_SOCKETS];
 	memset(bufferWrite, 0, sizeof bufferWrite);
 
-	// y tambien los flags para writes
-	fd_set writefds;
-
+	
 	//initialise all client_socket[] to 0 so not checked
 	memset(client_socket, 0, sizeof(client_socket));
 
-	// TODO adaptar setupTCPServerSocket para que cree socket para IPv4 e IPv6 y ademas soporte opciones (y asi no repetir codigo)
-	
-	// socket para IPv4 y para IPv6 (si estan disponibles)
-	///////////////////////////////////////////////////////////// IPv4
-	if( (master_socket[master_socket_size] = socket(AF_INET , SOCK_STREAM , 0)) == 0) 
-	{
-		log(ERROR, "socket IPv4 failed");
-	} else {
-		//set master socket to allow multiple connections , this is just a good habit, it will work without this
-		if( setsockopt(master_socket[master_socket_size], SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0 )
-		{
-			log(ERROR, "set IPv4 socket options failed");
-		}
+	int maxSocket = serverSocket;
 
-		//type of socket created
-		address.sin_family = AF_INET;
-		address.sin_addr.s_addr = INADDR_ANY;
-		address.sin_port = htons( PORT );
+	while(TRUE) {
 
-		// bind the socket to localhost port 8888
-		if (bind(master_socket[master_socket_size], (struct sockaddr *)&address, sizeof(address))<0) 
-		{
-			log(ERROR, "bind for IPv4 failed");
-			close(master_socket[master_socket_size]);
-		}
-		else {
-			if (listen(master_socket[0], MAX_PENDING_CONNECTIONS) < 0)
-			{
-				log(ERROR, "listen on IPv4 socket failes");
-				close(master_socket[master_socket_size]);
-			} else {
-				log(DEBUG, "Waiting for TCP IPv4 connections on socket %d\n", master_socket[master_socket_size]);
-				master_socket_size++;
-			}
-		}
-	}
-	///////////////////////////////////////////////////////////// IPv6 
-	// En realiad no es necesario crear dos sockets, lo hacemos como ejercicio, podemos setear las opciones
-	// para que IPv6 acepte ambos (dual stack socket)
-	// int on = 0;
-	// setsockopt(socketIpV6, IPPROTO_IPV6, IPV6_V6ONLY, (const void *)&on, sizeof(on));
-	struct sockaddr_in6 server6addr;
-	if ((master_socket[master_socket_size] = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
-	{
-		log(ERROR, "socket IPv6 failed");
-	} else {
-		if (setsockopt(master_socket[master_socket_size], SOL_SOCKET, SO_REUSEADDR, (char *)&opt,sizeof(opt)) < 0)
-		{
-			log(ERROR, "set IPv6 socket options failed");
-		}
-		memset(&server6addr, 0, sizeof(server6addr));
-		server6addr.sin6_family = AF_INET6;
-		server6addr.sin6_port   = htons(PORT);
-		server6addr.sin6_addr   = in6addr_any;
-		if (bind(master_socket[master_socket_size], (struct sockaddr *)&server6addr,sizeof(server6addr)) < 0)
-		{
-			log(ERROR, "bind for IPv6 failed");
-			close(master_socket[master_socket_size]);
-		} else {
-			if (listen(master_socket[master_socket_size], MAX_PENDING_CONNECTIONS) < 0)
-			{
-				log(ERROR, "listen on IPv6 failed");
-				close(master_socket[master_socket_size]);
-			} else {
-				log(DEBUG, "Waiting for TCP IPv6 connections on socket %d\n", master_socket[master_socket_size]);
-				master_socket_size++;
-			}
-		}
-	}
-
-	// Socket UDP para responder en base a addrInfo
-	int udpSock = udpSocket(PORT);
-	if ( udpSock < 0) {
-		log(FATAL, "UDP socket failed");
-	} else {
-		log(DEBUG, "Waiting for UDP IPv4 on socket %d\n", udpSock);
-	}
-
-	// Limpiamos el conjunto de escritura
-	FD_ZERO(&writefds);
-	while(TRUE) 
-	{
-		//clear the socket set
 		FD_ZERO(&readfds);
+		FD_ZERO(&writefds);
+		FD_SET(serverSocket, &readfds);
 
-		//add masters sockets to set
-		for (int sdMaster=0; sdMaster < master_socket_size; sdMaster++)
-			FD_SET(master_socket[sdMaster], &readfds);
-		FD_SET(udpSock, &readfds);
-
-		max_sd = udpSock;
+		maxSocket = serverSocket;
+		max_sd = serverSocket;
 
 		// add child sockets to set
-		for ( i = 0 ; i < max_clients ; i++) 
-		{
+		for ( i = 0 ; i < max_clients ; i++) {
 			// socket descriptor
 			sd = client_socket[i];
 
@@ -207,89 +133,78 @@ int main(int argc , char *argv[])
 		}
 
 		//wait for an activity on one of the sockets , timeout is NULL , so wait indefinitely
-		activity = select( max_sd + 1 , &readfds , &writefds , NULL , NULL);
-
+		activity = select( maxSocket+ 1 , &readfds , &writefds , NULL , NULL);
 		log(DEBUG, "select has something...");	
 
-		if ((activity < 0) && (errno!=EINTR)) 
-		{
+		if ((activity < 0) && (errno!=EINTR)) {
 			log(ERROR, "select error, errno=%d",errno);
 			continue;
 		}
 
-		// Servicio UDP
-		if(FD_ISSET(udpSock, &readfds)) {
-			handleAddrInfo(udpSock);
-		}
+		//si el server socket tiene algo es porque alguien quiere conectarse
+		if(FD_ISSET(serverSocket, &readfds)){
 
-		//If something happened on the TCP master socket , then its an incoming connection
-		for (int sdMaster=0; sdMaster < master_socket_size; sdMaster++) {
-			int mSock = master_socket[sdMaster];
-			if (FD_ISSET(mSock, &readfds)) 
-			{
-				if ((new_socket = acceptTCPConnection(mSock)) < 0)
-				{
-					log(ERROR, "Accept error on master socket %d", mSock);
-					continue;
-				}
+			log(DEBUG, "select has something on serverSocket...");
 
-				// add new socket to array of sockets
-				for (i = 0; i < max_clients; i++) 
-				{
-					// if position is empty
-					if( client_socket[i] == 0 )
-					{
+			if ((new_socket = acceptTCPConnection(serverSocket)) < 0){
+
+				log(ERROR, "Accept error on master socket %d", serverSocket);
+
+			}else{
+				for (i = 0; i < max_clients; i++){
+					if( client_socket[i] == 0 ){
 						client_socket[i] = new_socket;
 						log(DEBUG, "Adding to list of sockets as %d\n" , i);
 						break;
 					}
 				}
 			}
+
 		}
 
-		for(i =0; i < max_clients; i++) {
-			sd = client_socket[i];
+		// for(i =0; i < max_clients; i++) {
+		// 	sd = client_socket[i];
 
-			if (FD_ISSET(sd, &writefds)) {
-				handleWrite(sd, bufferWrite + i, &writefds);
-			}
-		}
+		// 	if (FD_ISSET(sd, &writefds)) {
+		// 		handleWrite(sd, bufferWrite + i, &writefds);
+		// 	}
+		// }
 
-		//else its some IO operation on some other socket :)
-		for (i = 0; i < max_clients; i++) 
-		{
-			sd = client_socket[i];
+		// //else its some IO operation on some other socket :)
+		// for (i = 0; i < max_clients; i++) 
+		// {
+		// 	sd = client_socket[i];
 
-			if (FD_ISSET( sd , &readfds)) 
-			{
-				//Check if it was for closing , and also read the incoming message
-				if ((valread = read( sd , buffer, BUFFSIZE)) <= 0)
-				{
-					//Somebody disconnected , get his details and print
-					getpeername(sd , (struct sockaddr*)&address , (socklen_t*)&addrlen);
-					log(INFO, "Host disconnected , ip %s , port %d \n" , inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
+		// 	if (FD_ISSET( sd , &readfds)) 
+		// 	{
+		// 		//Check if it was for closing , and also read the incoming message
+		// 		if ((valread = read( sd , buffer, BUFFSIZE)) <= 0)
+		// 		{
+		// 			//Somebody disconnected , get his details and print
+		// 			getpeername(sd , (struct sockaddr*)&address , (socklen_t*)&addrlen);
+		// 			log(INFO, "Host disconnected , ip %s , port %d \n" , inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
 
-					//Close the socket and mark as 0 in list for reuse
-					close( sd );
-					client_socket[i] = 0;
+		// 			//Close the socket and mark as 0 in list for reuse
+		// 			close( sd );
+		// 			client_socket[i] = 0;
 
-					FD_CLR(sd, &writefds);
-					// Limpiamos el buffer asociado, para que no lo "herede" otra sesión
-					clear(bufferWrite + i);
-				}
-				else {
-					log(DEBUG, "Received %zu bytes from socket %d\n", valread, sd);
-					// activamos el socket para escritura y almacenamos en el buffer de salida
-					FD_SET(sd, &writefds);
+		// 			FD_CLR(sd, &writefds);
+		// 			// Limpiamos el buffer asociado, para que no lo "herede" otra sesión
+		// 			clear(bufferWrite + i);
+		// 		}
+		// 		else {
+		// 			log(DEBUG, "Received %zu bytes from socket %d\n", valread, sd);
+		// 			// activamos el socket para escritura y almacenamos en el buffer de salida
+		// 			FD_SET(sd, &writefds);
 
-					// Tal vez ya habia datos en el buffer
-					// TODO: validar realloc != NULL
-					bufferWrite[i].buffer = realloc(bufferWrite[i].buffer, bufferWrite[i].len + valread);
-					memcpy(bufferWrite[i].buffer + bufferWrite[i].len, buffer, valread);
-					bufferWrite[i].len += valread;
-				}
-			}
-		}
+		// 			// Tal vez ya habia datos en el buffer
+		// 			// TODO: validar realloc != NULL
+		// 			bufferWrite[i].buffer = realloc(bufferWrite[i].buffer, bufferWrite[i].len + valread);
+		// 			memcpy(bufferWrite[i].buffer + bufferWrite[i].len, buffer, valread);
+		// 			bufferWrite[i].len += valread;
+		// 		}
+		// 	}
+		// }
 	}
 
 	return 0;
@@ -330,32 +245,6 @@ void handleWrite(int socket, struct buffer * buffer, fd_set * writefds) {
 		}
 	}
 }
-
-int udpSocket(int port) {
-
-	int sock;
-	struct sockaddr_in serverAddr;
-	if ( (sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
-		log(ERROR, "UDP socket creation failed, errno: %d %s", errno, strerror(errno));
-		return sock;
-	}
-	log(DEBUG, "UDP socket %d created", sock);
-	memset(&serverAddr, 0, sizeof(serverAddr));
-	serverAddr.sin_family    = AF_INET; // IPv4cle
-	serverAddr.sin_addr.s_addr = INADDR_ANY;
-	serverAddr.sin_port = htons(port);
-
-	if ( bind(sock, (const struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0 )
-	{
-		log(ERROR, "UDP bind failed, errno: %d %s", errno, strerror(errno));
-		close(sock);
-		return -1;
-	}
-	log(DEBUG, "UDP socket bind OK ");
-
-	return sock;
-}
-
 
 void handleAddrInfo(int socket) {
 	// En el datagrama viene el nombre a resolver
