@@ -52,6 +52,7 @@ struct User{
 	int socket;
 };
 
+
 struct buffer {
 	char * buffer;
 	size_t len;     // longitud del buffer
@@ -147,9 +148,7 @@ int main(int argc , char *argv[]){
 			log(DEBUG, "select has something on serverSocket...");
 
 			if ((new_socket = acceptTCPConnection(serverSocket)) < 0){
-
 				log(ERROR, "Accept error on master socket %d", serverSocket);
-
 			}else{
 				for (i = 0; i < max_clients; i++){
 					if( client_socket[i] == 0 ){
@@ -162,53 +161,52 @@ int main(int argc , char *argv[]){
 
 		}
 
-		// for(i =0; i < max_clients; i++) {
-		// 	sd = client_socket[i];
+		for(i =0; i < max_clients; i++) {
+			sd = client_socket[i];
 
-		// 	if (FD_ISSET(sd, &writefds)) {
-		// 		handleWrite(sd, bufferWrite + i, &writefds);
-		// 	}
-		// }
+			if (FD_ISSET(sd, &writefds)) {
+				handleWrite(sd, bufferWrite + i, &writefds);
+			}
+		}
 
-		// //else its some IO operation on some other socket :)
-		// for (i = 0; i < max_clients; i++) 
-		// {
-		// 	sd = client_socket[i];
+		//else its some IO operation on some other socket :)
+		for (i = 0; i < max_clients; i++) {
+			sd = client_socket[i];
 
-		// 	if (FD_ISSET( sd , &readfds)) 
-		// 	{
-		// 		//Check if it was for closing , and also read the incoming message
-		// 		if ((valread = read( sd , buffer, BUFFSIZE)) <= 0)
-		// 		{
-		// 			//Somebody disconnected , get his details and print
-		// 			getpeername(sd , (struct sockaddr*)&address , (socklen_t*)&addrlen);
-		// 			log(INFO, "Host disconnected , ip %s , port %d \n" , inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
+			if (FD_ISSET( sd , &readfds)) {
+				//Check if it was for closing , and also read the incoming message
+				if ((valread = read( sd , buffer, BUFFSIZE)) <= 0){
+					//Somebody disconnected , get his details and print
+					getpeername(sd , (struct sockaddr*)&address , (socklen_t*)&addrlen);
+					log(INFO, "Host disconnected , ip %s , port %d \n" , inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
 
-		// 			//Close the socket and mark as 0 in list for reuse
-		// 			close( sd );
-		// 			client_socket[i] = 0;
+					//Close the socket and mark as 0 in list for reuse
+					close( sd );
+					client_socket[i] = 0;
 
-		// 			FD_CLR(sd, &writefds);
-		// 			// Limpiamos el buffer asociado, para que no lo "herede" otra sesión
-		// 			clear(bufferWrite + i);
-		// 		}
-		// 		else {
-		// 			log(DEBUG, "Received %zu bytes from socket %d\n", valread, sd);
-		// 			// activamos el socket para escritura y almacenamos en el buffer de salida
-		// 			FD_SET(sd, &writefds);
+					FD_CLR(sd, &writefds);
+					// Limpiamos el buffer asociado, para que no lo "herede" otra sesión
+					clear(bufferWrite + i);
+				} else {
+					log(DEBUG, "Received %zu bytes from socket %d\n", valread, sd);
+					// activamos el socket para escritura y almacenamos en el buffer de salida
+					FD_SET(sd, &writefds);
 
-		// 			// Tal vez ya habia datos en el buffer
-		// 			// TODO: validar realloc != NULL
-		// 			bufferWrite[i].buffer = realloc(bufferWrite[i].buffer, bufferWrite[i].len + valread);
-		// 			memcpy(bufferWrite[i].buffer + bufferWrite[i].len, buffer, valread);
-		// 			bufferWrite[i].len += valread;
-		// 		}
-		// 	}
-		// }
+					// Tal vez ya habia datos en el buffer
+					// TODO: validar realloc != NULL
+					bufferWrite[i].buffer = realloc(bufferWrite[i].buffer, bufferWrite[i].len + valread);
+					memcpy(bufferWrite[i].buffer + bufferWrite[i].len, buffer, valread);
+					bufferWrite[i].len += valread;
+				}
+			}
+		}
 	}
 
 	return 0;
 }
+
+
+
 
 void clear( struct buffer * buffer) {
 	free(buffer->buffer);
