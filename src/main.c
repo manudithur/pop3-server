@@ -34,6 +34,7 @@
 #include <sys/time.h> 
 #include "logger.h"
 #include "tcp_server_utils.h"
+#include <sys/select.h>
 
 #define max(n1,n2)     ((n1)>(n2) ? (n1) : (n2))
 
@@ -134,18 +135,20 @@ int main(int argc , char *argv[]){
 		}
 
 		//wait for an activity on one of the sockets , timeout is NULL , so wait indefinitely
-		activity = select( maxSocket+ 1 , &readfds , &writefds , NULL , NULL);
-		log(DEBUG, "select has something...");	
+		activity = select( max_sd+1 , &readfds , &writefds , NULL , NULL);
+//		log(DEBUG, "select has something...");
 
 		if ((activity < 0) && (errno!=EINTR)) {
 			log(ERROR, "select error, errno=%d",errno);
 			continue;
 		}
+        log(INFO, "PASE POR ACA X",errno);
 
-		//si el server socket tiene algo es porque alguien quiere conectarse
+
+        //si el server socket tiene algo es porque alguien quiere conectarse
 		if(FD_ISSET(serverSocket, &readfds)){
 
-			log(DEBUG, "select has something on serverSocket...");
+//			log(DEBUG, "select has something on serverSocket...");
 
 			if ((new_socket = acceptTCPConnection(serverSocket)) < 0){
 				log(ERROR, "Accept error on master socket %d", serverSocket);
@@ -159,47 +162,49 @@ int main(int argc , char *argv[]){
 				}
 			}
 
-		}
+		}else{ //else its some IO operation on some other socket :)
+            for(i =0; i < max_clients; i++) {
+                sd = client_socket[i];
 
-		for(i =0; i < max_clients; i++) {
-			sd = client_socket[i];
+                if (FD_ISSET(sd, &writefds)) {
+                    handleWrite(sd, bufferWrite + i, &writefds);
+                }
+            }
 
-			if (FD_ISSET(sd, &writefds)) {
-				handleWrite(sd, bufferWrite + i, &writefds);
-			}
-		}
 
-		//else its some IO operation on some other socket :)
-		for (i = 0; i < max_clients; i++) {
-			sd = client_socket[i];
+            for (i = 0; i < max_clients; i++) {
+                sd = client_socket[i];
 
-			if (FD_ISSET( sd , &readfds)) {
-				//Check if it was for closing , and also read the incoming message
-				if ((valread = read( sd , buffer, BUFFSIZE)) <= 0){
-					//Somebody disconnected , get his details and print
-					getpeername(sd , (struct sockaddr*)&address , (socklen_t*)&addrlen);
-					log(INFO, "Host disconnected , ip %s , port %d \n" , inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
+                if (FD_ISSET( sd , &readfds)) {
+                    //Check if it was for closing , and also read the incoming message
+                    if ((valread = read( sd , buffer, BUFFSIZE)) <= 0){
+                        //Somebody disconnected , get his details and print
+                        getpeername(sd , (struct sockaddr*)&address , (socklen_t*)&addrlen);
+                        log(INFO, "Host disconnected , ip %s , port %d \n" , inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
 
-					//Close the socket and mark as 0 in list for reuse
-					close( sd );
-					client_socket[i] = 0;
+                        //Close the socket and mark as 0 in list for reuse
+                        close( sd );
+                        client_socket[i] = 0;
 
-					FD_CLR(sd, &writefds);
-					// Limpiamos el buffer asociado, para que no lo "herede" otra sesión
-					clear(bufferWrite + i);
-				} else {
-					log(DEBUG, "Received %zu bytes from socket %d\n", valread, sd);
-					// activamos el socket para escritura y almacenamos en el buffer de salida
-					FD_SET(sd, &writefds);
+                        FD_CLR(sd, &writefds);
+                        // Limpiamos el buffer asociado, para que no lo "herede" otra sesión
+                        clear(bufferWrite + i);
+                    } else {
+                        log(DEBUG, "Received %zu bytes from socket %d\n", valread, sd);
+                        // activamos el socket para escritura y almacenamos en el buffer de salida
+                        FD_SET(sd, &writefds);
 
-					// Tal vez ya habia datos en el buffer
-					// TODO: validar realloc != NULL
-					bufferWrite[i].buffer = realloc(bufferWrite[i].buffer, bufferWrite[i].len + valread);
-					memcpy(bufferWrite[i].buffer + bufferWrite[i].len, buffer, valread);
-					bufferWrite[i].len += valread;
-				}
-			}
-		}
+                        // Tal vez ya habia datos en el buffer
+                        // TODO: validar realloc != NULL
+                        bufferWrite[i].buffer = realloc(bufferWrite[i].buffer, bufferWrite[i].len + valread);
+                        memcpy(bufferWrite[i].buffer + bufferWrite[i].len, buffer, valread);
+                        bufferWrite[i].len += valread;
+                    }
+                }
+            }
+        }
+
+
 	}
 
 	return 0;

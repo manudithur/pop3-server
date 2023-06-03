@@ -12,6 +12,6 @@ int setupTCPServerSocket(const char *service);
 int acceptTCPConnection(int servSock);
 
 // Handle new TCP client
-void handleTCPEchoClient(int clntSocket);
+int handleTCPEchoClient(int clntSocket);
 
 #endif 

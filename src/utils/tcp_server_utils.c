@@ -55,7 +55,7 @@ int setupTCPServerSocket(const char *service) {
 		// int on = 0;
 		// setsockopt(socketIpV6, IPPROTO_IPV6, IPV6_V6ONLY, (const void *)&on, sizeof(on));
 		if( setsockopt(servSock, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0 ){
-			log(ERROR, "set server socket options failed");
+//			log(ERROR, "set server socket options failed");
 		}
 
 		// Bind to ALL the address and set socket to listen
@@ -87,7 +87,7 @@ int acceptTCPConnection(int servSock) {
 	// Wait for a client to connect
 	int clntSock = accept(servSock, (struct sockaddr *) &clntAddr, &clntAddrLen);
 	if (clntSock < 0) {
-		log(ERROR, "accept() failed");
+//		log(ERROR, "accept() failed");
 		return -1;
 	}
 
@@ -103,7 +103,7 @@ int handleTCPEchoClient(int clntSocket) {
 	// Receive message from client
 	ssize_t numBytesRcvd = recv(clntSocket, buffer, BUFSIZE, 0);
 	if (numBytesRcvd < 0) {
-		log(ERROR, "recv() failed");
+//		log(ERROR, "recv() failed");
 		return -1;   // TODO definir codigos de error
 	}
 
@@ -112,18 +112,18 @@ int handleTCPEchoClient(int clntSocket) {
 		// Echo message back to client
 		ssize_t numBytesSent = send(clntSocket, buffer, numBytesRcvd, 0);
 		if (numBytesSent < 0) {
-			log(ERROR, "send() failed");
+//			log(ERROR, "send() failed");
 			return -1;   // TODO definir codigos de error
 		}
 		else if (numBytesSent != numBytesRcvd) {
-			log(ERROR, "send() sent unexpected number of bytes ");
+//			log(ERROR, "send() sent unexpected number of bytes ");
 			return -1;   // TODO definir codigos de error
 		}
 
 		// See if there is more data to receive
 		numBytesRcvd = recv(clntSocket, buffer, BUFSIZE, 0);
 		if (numBytesRcvd < 0) {
-			log(ERROR, "recv() failed");
+//			log(ERROR, "recv() failed");
 			return -1;   // TODO definir codigos de error
 		}
 	}
