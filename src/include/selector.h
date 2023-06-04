@@ -65,13 +65,13 @@ const char *
 selector_error(const selector_status status);
 
 /** opciones de inicialización del selector */
-struct selector_init {
+typedef struct{
     /** señal a utilizar para notificaciones internas */
     const int signal;
 
     /** tiempo máximo de bloqueo durante `selector_iteratate' */
     struct timespec select_timeout;
-};
+} selector_init;
 
 /** inicializa la librería */
 selector_status

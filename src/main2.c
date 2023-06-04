@@ -19,6 +19,12 @@
 #define BUFFSIZE 1024
 #define POP3_PORT "5000"
 
+static int killServer = FALSE;
+
+static void sigterm_handler(){
+    killServer = TRUE;
+}
+
 int main(int argc , char *argv[]){
 
     setvbuf(stdout, NULL, _IONBF, 0);
@@ -26,9 +32,41 @@ int main(int argc , char *argv[]){
 
 	close(STDIN_FILENO);
 
-    
+    // Creamos el selector
+    const char* err_msg = NULL;
+    selector_status ss = SELECTOR_SUCCESS;
+    fd_selector selector = NULL;
+    const selector_init conf = {
+        .signal = SIGALRM,
+        .select_timeout = {
+            .tv_sec = 10,
+            .tv_nsec = 0,
+        },
+    };
+
+
+    if (0 != selector_init(&conf)) {
+        exit(1);
+    }
+
+    selector = selector_new(1024);
+    if (selector == NULL) {
+        selector_close();
+        exit(1);
+    }
 
 	int serverSocket = setupTCPServerSocket(POP3_PORT);
+
+    signal(SIGTERM, sigterm_handler);
+    signal(SIGINT, sigterm_handler);
+
+    //registrar socket pasivo
+    //pasarle los puntros a funcion para armar los handlers
+
+    while(!killServer){
+
+    }
+
 
 
 }
