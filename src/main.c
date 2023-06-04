@@ -75,6 +75,8 @@ void clear( struct buffer * buffer);
   */
 void handleAddrInfo(int socket);
 
+void setClients(int * client_socket, int * maxSocket, fd_set * readfds);
+
 
 int main(int argc , char *argv[]){
 
@@ -89,7 +91,6 @@ int main(int argc , char *argv[]){
 	int max_clients = MAX_SOCKETS;
 	int activity, i , sd;
 	long valread;
-	int max_sd;
 	struct sockaddr_in address;
 
 	struct sockaddr_storage clntAddr; // Client address
@@ -118,24 +119,11 @@ int main(int argc , char *argv[]){
 		FD_SET(serverSocket, &readfds);
 
 		maxSocket = serverSocket;
-		max_sd = serverSocket;
 
-		// add child sockets to set
-		for ( i = 0 ; i < max_clients ; i++) {
-			// socket descriptor
-			sd = client_socket[i];
-
-			// if valid socket descriptor then add to read list
-			if(sd > 0)
-				FD_SET( sd , &readfds);
-
-			// highest file descriptor number, need it for the select function
-			if(sd > max_sd)
-				max_sd = sd;
-		}
+		setClients(client_socket, &maxSocket, &readfds);
 
 		//wait for an activity on one of the sockets , timeout is NULL , so wait indefinitely
-		activity = select( max_sd+1 , &readfds , &writefds , NULL , NULL);
+		activity = select( maxSocket + 1 , &readfds , &writefds , NULL , NULL);
 //		log(DEBUG, "select has something...");
 
 		if ((activity < 0) && (errno!=EINTR)) {
@@ -208,6 +196,31 @@ int main(int argc , char *argv[]){
 	}
 
 	return 0;
+}
+
+
+// selector de coda le mando el socket como un fd cualquiera.
+// readfds => 
+// writefds => 
+//
+
+
+void setClients(int * client_socket, int * maxSocket, fd_set * readfds){
+	// add child sockets to set
+	int sd;
+	int max_clients = MAX_SOCKETS;
+	for (int i = 0 ; i < max_clients ; i++) {
+		// socket descriptor
+		sd = client_socket[i];
+
+		// if valid socket descriptor then add to read list
+		if(sd > 0)
+			FD_SET( sd , &readfds);
+
+		// highest file descriptor number, need it for the select function
+		if(sd > (*maxSocket))
+			*maxSocket = sd;
+	}
 }
 
 
@@ -322,3 +335,45 @@ void handleAddrInfo(int socket) {
 	log(DEBUG, "UDP sent:%s", bufferOut );
 
 }
+
+/*
+
+
+
+User{
+	readbuff
+	writebuff
+	socket
+	struct command
+	stm
+	parser
+}
+
+estados globales=> auth, trans, update (ver rfc)
+
+RETR 1 \r\n
+
+
+command{
+	commmand
+	arg1
+	arg2
+	done
+}	
+
+
+main => creo socket pasivo => selector del socket pasivo de coda.
+
+el accept me devuelve el fd => register
+
+while(running){
+	selctor_select(selector) < 0
+}
+
+SIGINT(running)
+SIGTERM(running)
+
+
+leer patches
+
+*/
