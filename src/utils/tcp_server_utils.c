@@ -1,5 +1,6 @@
 #include "tcp_server_utils.h"
 
+
 #define MAXPENDING 5
 #define BUFSIZE 256
 #define MAX_ADDR_BUFFER 128
@@ -70,15 +71,43 @@ int setupTCPServerSocket(const char *service) {
 
 	return servSock;
 }
+
 static void pop3_read(struct selector_key *key) {
-	printf("pop3_read\n");
+	struct state_machine* stm = &(client_data*)(key)->data->stm;
+    const enum socks_state st = stm_handler_read(stm, key);
+    if (st == ERROR || st == DONE) {
+        closeConnection(key);
+    }
 }
+
+static void pop3_write(struct selector_key *key) {
+	struct state_machine* stm = &(client_data*)(key)->data->stm;
+    const enum socks_state st = stm_handler_write(stm, key);
+    if (st == ERROR || st == DONE) {
+        closeConnection(key);
+    }
+}
+
+static void pop3_close(struct selector_key *key) {
+struct state_machine* stm = &(client_data*)(key)->data->stm;
+    stm_handler_close(stm, key);
+    closeConnection(key);
+}
+
+static void pop3_block(struct selector_key *key) {
+	struct state_machine* stm = &(client_data*)(key)->data->stm;
+    const enum socks_state st = stm_handler_block(stm, key);
+    if (st == ERROR || st == DONE) {
+        
+    }
+}
+
 static fd_handler pop3_handler = {
 	//TODO
-	.handle_read = pop3_read,
-	//.handle_write = pop3_write,
-	//.handle_close = pop3_close,
-	//.handle_block = pop3_block
+	.handle_read = NULL,
+	.handle_write = NULL,
+	.handle_close = NULL,
+	.handle_block = pop3_block
 };
 
 void handleNewConnection(struct selector_key * key){
@@ -106,6 +135,10 @@ void handleNewConnection(struct selector_key * key){
 	buffer_init(&client->rbStruct, BUFFER_LEN, client->rb);
 	buffer_init(&client->wbStruct, BUFFER_LEN, client->wb);
 	client->fd = clntSock;
+	client->stm.initial = AUTH_STATE; //TODO
+	client->stm.max_state = UPDATE_STATE; //TODO
+	client->stm.states = pop3_states; //TODO
+	stm_init(&client->stm);
 
 	int register_status = selector_register(key->s, clntSock, &pop3_handler, OP_READ, client);
 
@@ -169,4 +202,36 @@ int handleTCPEchoClient(int clntSocket) {
 
 	close(clntSocket);
 	return 0;
+}
+
+void closeConnection(struct selector_key* key) {
+    client_data* data = (client_data*)(key)->data;
+    if (data->closed)
+        return;
+    data->closed = true;
+    metricsRegisterClientDisconnected();
+    logf(LOG_INFO, "Socks5 client %d disconnected", key->fd);
+
+    int clientSocket = data->clientFd;
+    int serverSocket = data->originFd;
+
+    if (serverSocket != -1) {
+        selector_unregister_fd(key->s, serverSocket);
+        close(serverSocket);
+    }
+    if (clientSocket != -1) {
+        selector_unregister_fd(key->s, clientSocket);
+        close(clientSocket);
+    }
+
+    if (data->originResolution != NULL) {
+        if (data->client.reqParser.atyp != REQ_ATYP_DOMAINNAME) {
+            free(data->originResolution->ai_addr);
+            free(data->originResolution);
+        } else {
+            freeaddrinfo(data->originResolution);
+        }
+    }
+
+    free(data);
 }

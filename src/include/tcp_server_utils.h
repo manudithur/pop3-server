@@ -12,16 +12,19 @@
 #include "logger.h"
 #include "util.h"
 #include "buffer.h"
+#include "stm.h"
+#include "states.h"
 
 #define BUFFER_LEN 5000
 
-struct client_data{
+typedef struct client_data{
     struct buffer rbStruct;
     struct buffer wbStruct;
     uint8_t rb[BUFFER_LEN];
     uint8_t wb[BUFFER_LEN];
+    struct state_machine stm;
     int fd;
-};
+}client_data;
 
 
 // Create, bind, and listen a new TCP server socket
@@ -34,5 +37,7 @@ int acceptTCPConnection(int servSock);
 
 // Handle new TCP client
 int handleTCPEchoClient(int clntSocket);
+
+void closeConnection(TSelectorKey* key) ;
 
 #endif 
