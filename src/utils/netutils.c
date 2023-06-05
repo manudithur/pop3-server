@@ -1,11 +1,3 @@
-#include <stdbool.h>
-#include <errno.h>
-#include <string.h>
-#include <stdio.h>
-
-#include <unistd.h>
-#include <arpa/inet.h>
-
 #include "netutils.h"
 
 #define N(x) (sizeof(x)/sizeof((x)[0]))
@@ -63,7 +55,7 @@ sock_blocking_write(const int fd, buffer *b) {
 
     do {
         ptr = buffer_read_ptr(b, &n);
-        nwritten = send(fd, ptr, n, MSG_NOSIGNAL);
+        //nwritten = send(fd, ptr, n, MSG_NOSIGNAL);
         if (nwritten > 0) {
             buffer_read_adv(b, nwritten);
         } else /* if (errno != EINTR) */ {
@@ -84,7 +76,7 @@ sock_blocking_copy(const int source, const int dest) {
         char* out_ptr = buf;
         ssize_t nwritten;
         do {
-            nwritten = send(dest, out_ptr, nread, MSG_NOSIGNAL);
+            //nwritten = send(dest, out_ptr, nread, MSG_NOSIGNAL);
             if (nwritten > 0) {
                 nread -= nwritten;
                 out_ptr += nwritten;

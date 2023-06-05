@@ -1,11 +1,3 @@
-#include <sys/socket.h>
-#include <errno.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <string.h>
-#include "logger.h"
-#include "util.h"
 #include "tcp_server_utils.h"
 
 #define MAXPENDING 5
@@ -77,6 +69,51 @@ int setupTCPServerSocket(const char *service) {
 	freeaddrinfo(servAddr);
 
 	return servSock;
+}
+
+static fd_handler pop3_handler = {
+	//TODO
+	//.handle_read = pop3_read,
+	//.handle_write = pop3_write,
+	//.handle_close = pop3_close,
+	//.handle_block = pop3_block
+};
+
+void handleNewConnection(struct selector_key * key){
+
+	struct sockaddr_storage clntAddr; // Client address
+	// Set length of client address structure (in-out parameter)
+	socklen_t clntAddrLen = sizeof(clntAddr);
+
+	int clntSock = accept(key->fd, (struct sockaddr *) &clntAddr, &clntAddrLen);
+	if (clntSock < 0) {
+	//log(ERROR, "accept() failed");
+		return;
+	}
+
+	// clntSock is connected to a client!
+	printSocketAddress((struct sockaddr *) &clntAddr, addrBuffer);
+	log(INFO, "Handling client %s", addrBuffer);
+
+	struct client_data * client = calloc(1, sizeof(struct client_data));
+	if(client == NULL){
+		close(clntSock);
+		return;
+	}
+
+	buffer_init(&client->rbStruct, BUFFER_LEN, client->rb);
+	buffer_init(&client->wbStruct, BUFFER_LEN, client->wb);
+	client->fd = clntSock;
+
+	int register_status = selector_register(key->s, clntSock, &pop3_handler, OP_READ, client);
+
+	if(register_status != SELECTOR_SUCCESS){
+		close(clntSock);
+		free(client);
+		return;
+	}
+
+
 }
 
 int acceptTCPConnection(int servSock) {

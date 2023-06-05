@@ -1,20 +1,3 @@
-/**
- * selector.c - un muliplexor de entrada salida
- */
-#include <stdio.h>  // perror
-#include <stdlib.h> // malloc
-#include <string.h> // memset
-#include <assert.h> // :)
-#include <errno.h>  // :)
-#include <pthread.h>
-
-#include <stdint.h> // SIZE_MAX
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/select.h>
-#include <sys/signal.h>
 #include "selector.h"
 
 #define N(x) (sizeof(x)/sizeof((x)[0]))
@@ -58,7 +41,7 @@ struct selector_init conf;
 static sigset_t emptyset, blockset;
 
 selector_status
-selector_init(const struct selector_init  *c) {
+selector_inits(const struct selector_init  *c) {
     memcpy(&conf, c, sizeof(conf));
 
     // inicializamos el sistema de comunicación entre threads y el selector

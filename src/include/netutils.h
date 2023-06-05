@@ -1,9 +1,15 @@
-#ifndef NETUTILS_H_CTCyWGhkVt1pazNytqIRptmAi5U
-#define NETUTILS_H_CTCyWGhkVt1pazNytqIRptmAi5U
+#ifndef NETUTILS_H_
+#define NETUTILS_H_
 
 #include <netinet/in.h>
-
 #include "buffer.h"
+#include <stdbool.h>
+#include <errno.h>
+#include <string.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
 
 #define SOCKADDR_TO_HUMAN_MIN (INET6_ADDRSTRLEN + 5 + 1)
 /**

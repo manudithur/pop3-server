@@ -1,7 +1,20 @@
-#ifndef SELECTOR_H_W50GNLODsARolpHbsDsrvYvMsbT
-#define SELECTOR_H_W50GNLODsARolpHbsDsrvYvMsbT
+#ifndef SELECTOR_H_
+#define SELECTOR_H_
 
 #include <sys/time.h>
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <string.h> 
+#include <assert.h> 
+#include <errno.h>
+#include <pthread.h>
+#include <stdint.h> 
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/select.h>
+#include <signal.h>
 #include <stdbool.h>
 
 /**
@@ -65,17 +78,17 @@ const char *
 selector_error(const selector_status status);
 
 /** opciones de inicialización del selector */
-typedef struct{
+struct selector_init{
     /** señal a utilizar para notificaciones internas */
     const int signal;
 
     /** tiempo máximo de bloqueo durante `selector_iteratate' */
     struct timespec select_timeout;
-} selector_init;
+};
 
 /** inicializa la librería */
 selector_status
-selector_init(const struct selector_init *c);
+selector_inits(const struct selector_init *c);
 
 /** deshace la incialización de la librería */
 selector_status
@@ -111,7 +124,7 @@ typedef enum {
 /**
  * Argumento de todas las funciones callback del handler
  */
-struct selector_key {
+struct selector_key{
     /** el selector que dispara el evento */
     fd_selector s;
     /** el file descriptor en cuestión */
