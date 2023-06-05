@@ -20,7 +20,7 @@ int setupTCPServerSocket(const char *service) {
 	addrCriteria.ai_protocol = IPPROTO_TCP;         
 
 	struct addrinfo *servAddr; 			// List of server addresses
-	int rtnVal = getaddrinfo(NULL, service, &addrCriteria, &servAddr);
+	int rtnVal = getaddrinfo("127.0.0.1", service, &addrCriteria, &servAddr);
 	if (rtnVal != 0) {
 		log(FATAL, "getaddrinfo() failed %s", gai_strerror(rtnVal));
 		return -1;
@@ -70,10 +70,12 @@ int setupTCPServerSocket(const char *service) {
 
 	return servSock;
 }
-
+static void pop3_read(struct selector_key *key) {
+	printf("pop3_read\n");
+}
 static fd_handler pop3_handler = {
 	//TODO
-	//.handle_read = pop3_read,
+	.handle_read = pop3_read,
 	//.handle_write = pop3_write,
 	//.handle_close = pop3_close,
 	//.handle_block = pop3_block

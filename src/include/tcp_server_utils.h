@@ -16,8 +16,8 @@
 #define BUFFER_LEN 5000
 
 struct client_data{
-    struct buffer *rbStruct;
-    struct buffer *wbStruct;
+    struct buffer rbStruct;
+    struct buffer wbStruct;
     uint8_t rb[BUFFER_LEN];
     uint8_t wb[BUFFER_LEN];
     int fd;
