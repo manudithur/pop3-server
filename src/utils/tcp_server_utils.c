@@ -48,7 +48,7 @@ int setupTCPServerSocket(const char *service) {
 		// int on = 0;
 		// setsockopt(socketIpV6, IPPROTO_IPV6, IPV6_V6ONLY, (const void *)&on, sizeof(on));
 		if( setsockopt(servSock, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0 ){
-//			log(ERROR, "set server socket options failed");
+			//log(ERROR, "set server socket options failed");
 		}
 
 		// Bind to ALL the address and set socket to listen
@@ -103,12 +103,32 @@ static void pop3_block(struct selector_key *key) {
 }
 
 static fd_handler pop3_handler = {
-	//TODO
-	.handle_read = NULL,
-	.handle_write = NULL,
-	.handle_close = NULL,
+	.handle_read = pop3_read,
+	.handle_write = pop3_write,
+	.handle_close = pop3_close,
 	.handle_block = pop3_block
 };
+
+static struct state_definition states[]{
+	{
+		.state = AUTH_STATE
+		//TODO
+		.on_arrival = NULL,
+		.on_read_ready = handleTCPEchoClient
+	},
+	{
+		.state = TRANSACTION_STATE
+		//TODO
+		.on_arrival = NULL,
+		.on_read_ready = NULL
+	},
+	{
+		.state = UPDATE_STATE
+		//TODO
+		.on_arrival = NULL,
+		.on_read_ready = NULL
+	}
+}
 
 void handleNewConnection(struct selector_key * key){
 
@@ -137,7 +157,7 @@ void handleNewConnection(struct selector_key * key){
 	client->fd = clntSock;
 	client->stm.initial = AUTH_STATE; //TODO
 	client->stm.max_state = UPDATE_STATE; //TODO
-	client->stm.states = pop3_states; //TODO
+	client->stm.states = states; //TODO
 	stm_init(&client->stm);
 
 	int register_status = selector_register(key->s, clntSock, &pop3_handler, OP_READ, client);
@@ -170,41 +190,51 @@ int acceptTCPConnection(int servSock) {
 	return clntSock;
 }
 
-int handleTCPEchoClient(int clntSocket) {
-	char buffer[BUFSIZE]; // Buffer for echo string
+int handleTCPEchoClient(struct selector_key * key) {
+    client_data* data = (client_data*)(key)->data;
+	//char buffer[BUFSIZE]; // Buffer for echo string
 	// Receive message from client
-	ssize_t numBytesRcvd = recv(clntSocket, buffer, BUFSIZE, 0);
-	if (numBytesRcvd < 0) {
+	ssize_t readLimit;
+	ssize_t amount_read;
+	ssize_t writeLimit;
+	uint8_t * readBuffer buffer_write_ptr(&data->rbStruct, &readLimit);
+	uint8_t * writeBuffer = buffer_read_prt(&data->wbStruct, &writeLimit);
+
+
+	amount_read = recv(key->fd, readBuffer, readLimit, 0);
+
+
+	if (amount_read < 0) {
 //		log(ERROR, "recv() failed");
 		return -1;   // TODO definir codigos de error
 	}
 
 	// Send received string and receive again until end of stream
-	while (numBytesRcvd > 0) { // 0 indicates end of stream
+	while (amount_read > 0) { // 0 indicates end of stream
 		// Echo message back to client
-		ssize_t numBytesSent = send(clntSocket, buffer, numBytesRcvd, 0);
+		ssize_t numBytesSent = send(data->fd, writeBuffer, writeLimit, 0);
 		if (numBytesSent < 0) {
 //			log(ERROR, "send() failed");
 			return -1;   // TODO definir codigos de error
 		}
-		else if (numBytesSent != numBytesRcvd) {
+		else if (numBytesSent != amount_read) {
 //			log(ERROR, "send() sent unexpected number of bytes ");
 			return -1;   // TODO definir codigos de error
 		}
 
 		// See if there is more data to receive
-		numBytesRcvd = recv(clntSocket, buffer, BUFSIZE, 0);
+		amount_read = recv(key->fd, readBuffer, readLimit, 0);
 		if (numBytesRcvd < 0) {
 //			log(ERROR, "recv() failed");
 			return -1;   // TODO definir codigos de error
 		}
 	}
 
-	close(clntSocket);
+	//close(clntSocket);
 	return 0;
 }
 
-void closeConnection(struct selector_key* key) {
+void closeConnection(struct selector_key * key) {
     client_data* data = (client_data*)(key)->data;
     if (data->closed)
         return;

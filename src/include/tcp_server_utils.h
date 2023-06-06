@@ -38,6 +38,7 @@ int acceptTCPConnection(int servSock);
 // Handle new TCP client
 int handleTCPEchoClient(int clntSocket);
 
-void closeConnection(TSelectorKey* key) ;
+void closeConnection(struct selector_key * key);
+
 
 #endif 
