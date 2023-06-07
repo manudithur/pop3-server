@@ -21,7 +21,7 @@
  * de selector.c.
  */
 
-struct state_machine {
+typedef struct state_machine {
     /** declaración de cual es el estado inicial */
     unsigned                      initial;
     /**
@@ -32,7 +32,7 @@ struct state_machine {
     unsigned                      max_state;
     /** estado actual */
     const struct state_definition *current;
-};
+}state_machine;
 
 struct selector_key *key;
 

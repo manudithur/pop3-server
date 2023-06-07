@@ -36,9 +36,7 @@ void handleNewConnection(struct selector_key * key);
 int acceptTCPConnection(int servSock);
 
 // Handle new TCP client
-int handleTCPEchoClient(int clntSocket);
-
-void closeConnection(struct selector_key * key);
+unsigned handleTCPEchoClient(struct selector_key * key);
 
 
 #endif 
