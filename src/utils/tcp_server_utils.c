@@ -117,6 +117,11 @@ static struct state_definition states[] = {
 		.on_read_ready = readHandler,
         .on_write_ready = NULL
 	},
+    {
+            .state = KEEP_READING,
+            .on_arrival = NULL,
+            .on_read_ready = readHandler
+    },
 	{
 		.state = TRANSACTION_STATE,
 		//TODO
@@ -129,7 +134,7 @@ static struct state_definition states[] = {
 		//TODO
 		.on_arrival = NULL,
 		.on_write_ready = NULL
-	}
+	},
 };
 
 void handleNewConnection(struct selector_key * key){

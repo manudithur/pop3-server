@@ -24,6 +24,19 @@ unsigned readHandler(struct selector_key * key) {
 
     //Parse. If I need to still read -> return TRANSACTION_STATE? If not -> return UPDATE_STATE? No estoy seguro de los estados
 
+    //unsigned nextAction = parseHandler();
+
+//  while (nextAction == KEEP_READING)
+//    {
+//        readCount = recv(key->fd, readBuffer, readLimit, 0);
+//        if (readCount <= 0) {
+//          return -1;
+//        }
+//        nextAction = parseHandler();
+//    }
+
+    //return nextState;
+
     return TRANSACTION_STATE;
 }
 
