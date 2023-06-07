@@ -73,7 +73,7 @@ int setupTCPServerSocket(const char *service) {
 }
 
 static void pop3_read(struct selector_key *key) {
-	struct state_machine* stm = &(((client_data*)(key)->data)->stm);
+	struct state_machine* stm = &ATTACHMENT(key)->stm;
     const enum pop3_states st = stm_handler_read(stm, key);
     //if (st == ERROR || st == DONE) {
         //TODO:cerrar conexion
@@ -81,7 +81,7 @@ static void pop3_read(struct selector_key *key) {
 }
 
 static void pop3_write(struct selector_key *key) {
-	struct state_machine* stm = &(((client_data*)(key)->data)->stm);
+	struct state_machine* stm = &ATTACHMENT(key)->stm;
     const enum pop3_states st = stm_handler_write(stm, key);
     //if (st == ERROR || st == DONE) {
        //TODO:cerrar conexion
@@ -89,13 +89,13 @@ static void pop3_write(struct selector_key *key) {
 }
 
 static void pop3_close(struct selector_key *key) {
-struct state_machine* stm = &(((client_data*)(key)->data)->stm);
+struct state_machine* stm = &ATTACHMENT(key)->stm;
     stm_handler_close(stm, key);
     //TODO : cerrar la conexion al cliente
 }
 
 static void pop3_block(struct selector_key *key) {
-	struct state_machine* stm = &(((client_data*)(key)->data)->stm);
+	struct state_machine* stm = &ATTACHMENT(key)->stm;
     const enum pop3_states st = stm_handler_block(stm, key);
     //if (st == ERROR || st == DONE) {
         
@@ -191,7 +191,7 @@ int acceptTCPConnection(int servSock) {
 }
 
 unsigned handleTCPEchoClient(struct selector_key * key) {
-    client_data* data = (client_data*)(key)->data;
+    client_data* data = ATTACHMENT(key);
 	//char buffer[BUFSIZE]; // Buffer for echo string
 	// Receive message from client
 	size_t readLimit;

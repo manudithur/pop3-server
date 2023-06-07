@@ -16,7 +16,7 @@
 #include "states.h"
 
 #define BUFFER_LEN 5000
-#define ATTACHMENT(key) &(((client_data*)(key)->data))
+#define ATTACHMENT(key) ((client_data*)(key)->data)
 
 typedef struct client_data{
     struct buffer rbStruct;
