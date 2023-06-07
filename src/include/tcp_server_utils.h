@@ -32,13 +32,7 @@ typedef struct client_data{
 // Create, bind, and listen a new TCP server socket
 int setupTCPServerSocket(const char *service);
 
-void handleNewConnection(struct selector_key * key);
-
 // Accept a new TCP connection on a server socket
-int acceptTCPConnection(int servSock);
-
-// Handle new TCP client
-unsigned handleTCPEchoClient(struct selector_key * key);
-
+void handleNewConnection(struct selector_key * key);
 
 #endif 

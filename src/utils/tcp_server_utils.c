@@ -157,10 +157,10 @@ void handleNewConnection(struct selector_key * key){
 	buffer_init(&client->rbStruct, BUFFER_LEN, client->rb);
 	buffer_init(&client->wbStruct, BUFFER_LEN, client->wb);
 	client->fd = clntSock;
-	client->stm.initial = AUTH_STATE; //TODO
-	client->stm.max_state = UPDATE_STATE; //TODO
+	client->stm.initial = AUTH_STATE;
+	client->stm.max_state = UPDATE_STATE;
 	
-	client->stm.states = states; //TODO
+	client->stm.states = states;
 	stm_init(&client->stm);
 
 	int register_status = selector_register(key->s, clntSock, &pop3_handler, OP_READ, client);
@@ -173,69 +173,3 @@ void handleNewConnection(struct selector_key * key){
 
 
 }
-
-int acceptTCPConnection(int servSock) {
-	struct sockaddr_storage clntAddr; // Client address
-	// Set length of client address structure (in-out parameter)
-	socklen_t clntAddrLen = sizeof(clntAddr);
-
-	// Wait for a client to connect
-	int clntSock = accept(servSock, (struct sockaddr *) &clntAddr, &clntAddrLen);
-	if (clntSock < 0) {
-//		log(ERROR, "accept() failed");
-		return -1;
-	}
-
-	// clntSock is connected to a client!
-	printSocketAddress((struct sockaddr *) &clntAddr, addrBuffer);
-	log(INFO, "Handling client %s", addrBuffer);
-
-	return clntSock;
-}
-
-unsigned handleTCPEchoClient(struct selector_key * key) {
-	
-    client_data* data = ATTACHMENT(key);
-	//char buffer[BUFSIZE]; // Buffer for echo string
-	// Receive message from client
-	size_t readLimit;
-	ssize_t amount_read;
-	size_t writeLimit;
-	uint8_t * readBuffer = buffer_write_ptr(&data->rbStruct, &readLimit);
-	uint8_t * writeBuffer = buffer_read_ptr(&data->wbStruct, &writeLimit);
-
-
-	amount_read = recv(key->fd, readBuffer, readLimit, 0);
-
-	if (amount_read < 0) {
-//		log(ERROR, "recv() failed");
-		return -1;   // TODO definir codigos de error
-	}
-
-	// Send received string and receive again until end of stream
-	while (amount_read > 0) { // 0 indicates end of stream
-		// Echo message back to client
-		ssize_t numBytesSent = send(data->fd, readBuffer, readLimit, 0);
-	;
-		if (numBytesSent < 0) {
-//			log(ERROR, "send() failed");
-			return -1;   // TODO definir codigos de error
-		}
-		else if (numBytesSent != amount_read) {
-//			log(ERROR, "send() sent unexpected number of bytes ");
-			return -1;   // TODO definir codigos de error
-		}
-
-		// See if there is more data to receive
-		amount_read = recv(key->fd, readBuffer, readLimit, 0);
-		if (amount_read < 0) {
-//			log(ERROR, "recv() failed");
-			return -1;   // TODO definir codigos de error
-		}
-	}
-
-	//close(clntSocket);
-	return 0;
-}
-
-
