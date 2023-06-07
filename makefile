@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = --std=c11 -fsanitize=address -pedantic -pedantic-errors -Wall -Wextra -Wno-unused-parameter -Wno-implicit-fallthrough -D_POSIX_C_SOURCE=200112L -g
+CFLAGS = --std=c11 -fsanitize=address -pedantic -pedantic-errors -Wall -Wextra -Wno-unused-parameter -Wno-implicit-fallthrough -D_POSIX_C_SOURCE=200112L -pthread -g
 SRC_DIR = src
 PATCH_DIR = patches
 INCLUDE_DIR = $(SRC_DIR)/include
