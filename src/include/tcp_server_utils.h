@@ -14,6 +14,7 @@
 #include "buffer.h"
 #include "stm.h"
 #include "states.h"
+#include "pop3.h"
 
 #define BUFFER_LEN 5000
 #define ATTACHMENT(key) ((client_data*)(key)->data)

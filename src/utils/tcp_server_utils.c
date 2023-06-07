@@ -114,19 +114,21 @@ static struct state_definition states[] = {
 		.state = AUTH_STATE,
 		//TODO
 		.on_arrival = NULL,
-		.on_read_ready = handleTCPEchoClient
+		.on_read_ready = readHandler,
+        .on_write_ready = NULL
 	},
 	{
 		.state = TRANSACTION_STATE,
 		//TODO
 		.on_arrival = NULL,
-		.on_read_ready = NULL
+		.on_read_ready = readHandler,
+        .on_write_ready = NULL
 	},
 	{
 		.state = UPDATE_STATE,
 		//TODO
 		.on_arrival = NULL,
-		.on_read_ready = NULL
+		.on_write_ready = NULL
 	}
 };
 
