@@ -157,7 +157,8 @@ void handleNewConnection(struct selector_key * key){
 	client->fd = clntSock;
 	client->stm.initial = AUTH_STATE; //TODO
 	client->stm.max_state = UPDATE_STATE; //TODO
-	//client->stm.states = states; //TODO
+	
+	client->stm.states = states; //TODO
 	stm_init(&client->stm);
 
 	int register_status = selector_register(key->s, clntSock, &pop3_handler, OP_READ, client);
@@ -191,6 +192,7 @@ int acceptTCPConnection(int servSock) {
 }
 
 unsigned handleTCPEchoClient(struct selector_key * key) {
+	
     client_data* data = ATTACHMENT(key);
 	//char buffer[BUFSIZE]; // Buffer for echo string
 	// Receive message from client
@@ -203,7 +205,6 @@ unsigned handleTCPEchoClient(struct selector_key * key) {
 
 	amount_read = recv(key->fd, readBuffer, readLimit, 0);
 
-
 	if (amount_read < 0) {
 //		log(ERROR, "recv() failed");
 		return -1;   // TODO definir codigos de error
@@ -212,7 +213,8 @@ unsigned handleTCPEchoClient(struct selector_key * key) {
 	// Send received string and receive again until end of stream
 	while (amount_read > 0) { // 0 indicates end of stream
 		// Echo message back to client
-		ssize_t numBytesSent = send(data->fd, writeBuffer, writeLimit, 0);
+		ssize_t numBytesSent = send(data->fd, readBuffer, readLimit, 0);
+	;
 		if (numBytesSent < 0) {
 //			log(ERROR, "send() failed");
 			return -1;   // TODO definir codigos de error

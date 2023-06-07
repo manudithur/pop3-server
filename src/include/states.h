@@ -2,7 +2,7 @@
 #define _STATES_H
 
 enum pop3_states{
-    AUTH_STATE,
+    AUTH_STATE =0,
     TRANSACTION_STATE,
     UPDATE_STATE
 };
