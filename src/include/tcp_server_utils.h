@@ -14,10 +14,20 @@
 #include "buffer.h"
 #include "stm.h"
 #include "states.h"
+#include "parser.h"
 #include "pop3.h"
 
 #define BUFFER_LEN 5000
+#define MAX_COMMAND_LEN 40
+#define MAX_ARG_LEN 100
 #define ATTACHMENT(key) ((client_data*)(key)->data)
+
+typedef struct command_data{
+    char command[MAX_COMMAND_LEN];
+    char arg1[MAX_ARG_LEN];
+    char arg2[MAX_ARG_LEN];
+    uint8_t commandLen, arg1Len, arg2Len;
+}command_data;
 
 typedef struct client_data{
     struct buffer rbStruct;
@@ -26,6 +36,8 @@ typedef struct client_data{
     uint8_t wb[BUFFER_LEN];
     struct state_machine stm;
     int fd;
+    struct parser parser;
+    struct command_data command;
 }client_data;
 
 

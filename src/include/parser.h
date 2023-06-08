@@ -12,6 +12,7 @@
  */
 #include <stdint.h>
 #include <stddef.h>
+#include "tcp_server_utils.h"
 
 /**
  * Evento que retorna el parser.

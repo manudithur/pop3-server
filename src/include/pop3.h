@@ -8,6 +8,7 @@
 #include "tcp_server_utils.h"
 #include <stdio.h>
 #include <sys/socket.h>
+#include "../include/parser.h"
 
 unsigned readHandler(struct selector_key * key);
 
