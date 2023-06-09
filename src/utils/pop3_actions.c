@@ -30,7 +30,14 @@ unsigned rset_handler(selector_key *key){
 }
 
 unsigned noop_handler(selector_key *key){
-    //Does nothing, always has a succesfull outcome, can't affect state.
+    client_data * data = ATTACHMENT(key);
+    char buf[] = {"+OK NOOP\r\n"};
+
+    for (int i = 0; buf[i] != '\0'; i++){
+        buffer_write(&data->wbStruct,buf[i]);
+    }
+    writeHandler(key);
+    return data->stm.current->state;
 }
 
 unsigned quit_handler(selector_key *key){

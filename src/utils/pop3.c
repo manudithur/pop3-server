@@ -3,7 +3,7 @@
 
 typedef struct commands{
     char command_name[MAX_COMMAND_LEN];
-    void * action;
+    unsigned (*action)(selector_key * key);
 }commands;
 
 static const commands command_list_auth[AUTH_COMMAND_AMOUNT] = {
@@ -28,14 +28,14 @@ static const commands command_list_update[UPDATE_COMMAND_AMOUNT] = {
     {.command_name = "QUIT", .action = quit_handler},
 };
 
-static unsigned check_commands(struct selector_key * key, commands * command_list, int command_amount){
+static unsigned check_commands(struct selector_key * key, const commands * command_list, int command_amount){
     client_data * data = ATTACHMENT(key);
     for(int i = 0 ; i < command_amount; i ++){
         if(strcmp(data->command.command, command_list[i].command_name) == 0){
             return command_list[i].action(key);
         }
     }
-    return data->stm.current.state;
+    return data->stm.current->state;
 }
 
 
@@ -59,16 +59,16 @@ unsigned readHandler(struct selector_key * key) {
 
     while(buffer_can_read(&data->rbStruct)){
 
-        parser_event * ret = parser_feed(&data->parser, buffer_read(&data->rbStruct));
+        const struct parser_event * ret = parser_feed(data->parser, buffer_read(&data->rbStruct));
 
         if(ret->type == PARSE_COMMAND)
-            data->command.command[data->command.commandLen++] = ret->c;
+            data->command.command[data->command.commandLen++] = ret->data[0];
         else if(ret->type == PARSE_ARG1)
-            data->command.arg1[data->command.arg1Len++] = ret->c;
-        else if(ret-> type == PARSE_ARG2)
-            data->command.arg2[data->command.arg2Len++] = ret->c;
+            data->command.arg1[data->command.arg1Len++] = ret->data[0];
+        else if(ret->type == PARSE_ARG2)
+            data->command.arg2[data->command.arg2Len++] = ret->data[0];
         else{
-            switch(data->stm.current.state){
+            switch(data->stm.current->state){
                 case TRANSACTION_STATE:
                     check_commands(key, command_list_transaction, TRANSACTION_COMMAND_AMOUNT);
                     break;
@@ -79,15 +79,17 @@ unsigned readHandler(struct selector_key * key) {
                     check_commands(key, command_list_update, UPDATE_COMMAND_AMOUNT);
                     break;
             }
+            parser_reset(data->parser);
         }
     }
-
-    return data->stm.current.state;
+    selector_set_interest_key(key, OP_WRITE);
+    return data->stm.current->state;
 }
 
 
 
 unsigned writeHandler(struct selector_key *key){
+    selector_set_interest_key(key, OP_READ);
    client_data * data = ATTACHMENT(key);
 
    size_t writeLimit;
@@ -104,7 +106,7 @@ unsigned writeHandler(struct selector_key *key){
    buffer_read_adv(&data->wbStruct, writeCount);
 
    //if I can read more from buffer -> return UPDATE_STATE? no estoy seguro, tiene que seguir escribiendo
-   return data->stm.current.state;
+   return data->stm.current->state;
 }
 
 

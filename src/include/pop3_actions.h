@@ -5,6 +5,8 @@
 #include "pop3.h"
 #include "tcp_server_utils.h"
 #include "selector.h"
+#include "buffer.h"
+#define BUFFER_LENGTH 10
 
 unsigned user_handler(selector_key *key);
 unsigned pass_handler(selector_key *key);
@@ -16,3 +18,6 @@ unsigned rset_handler(selector_key *key);
 unsigned noop_handler(selector_key *key);
 unsigned quit_handler(selector_key *key);
 unsigned capa_handler(selector_key *key);
+
+#endif
+

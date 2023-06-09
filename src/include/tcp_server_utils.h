@@ -16,11 +16,15 @@
 #include "states.h"
 #include "parser.h"
 #include "pop3.h"
+#include "pop3_parser_impl.h"
 
 #define BUFFER_LEN 5000
 #define MAX_COMMAND_LEN 40
 #define MAX_ARG_LEN 100
 #define ATTACHMENT(key) ((client_data*)(key)->data)
+
+extern const struct parser_definition definition;
+
 
 typedef struct command_data{
     char command[MAX_COMMAND_LEN];
@@ -30,13 +34,14 @@ typedef struct command_data{
 }command_data;
 
 typedef struct client_data{
+    char * username;
     struct buffer rbStruct;
     struct buffer wbStruct;
     uint8_t rb[BUFFER_LEN];
     uint8_t wb[BUFFER_LEN];
     struct state_machine stm;
     int fd;
-    struct parser parser;
+    struct parser * parser;
     struct command_data command;
 }client_data;
 

@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include "parser.h"
 #include "pop3_parser_impl.h"
+#include "pop3_actions.h"
 
 #define COMMAND_AMOUNT 10
 #define TRANSACTION_COMMAND_AMOUNT 8

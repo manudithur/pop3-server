@@ -1,12 +1,6 @@
 #include "pop3_parser_impl.h"
 
-enum command_state{
-    PARSE_COMMAND,
-    PARSE_ARG1,
-    PARSE_ARG2,
-    DONE,
-    ERROR
-};
+
 
 
 static void readCommand(struct parser_event *ret, const uint8_t c){
@@ -33,7 +27,7 @@ static void deliver(struct parser_event *ret, const uint8_t c){
 }
 
 static void invalidParameters(struct parser_event *ret, const uint8_t c){
-    ret->type = ERROR;
+    ret->type = INVALID;
     ret->n = 1;
     ret->data[0] = c;
 }
@@ -41,25 +35,25 @@ static void invalidParameters(struct parser_event *ret, const uint8_t c){
 
 
 static const struct parser_state_transition ST_COMMAND [] =  {
-    {.when = ' ',        .dest = PARSE_ARG1,        .act1 = readArg1,},
-    {.when = '\r',        .dest = DONE,        .act1 =  /*TODO*/,},
-    {.when = ANY,        .dest = PARSE_COMMAND,        .act1 =  readCommand,},
+    {.when = ' ',        .dest = PARSE_ARG1,        .act1 = NULL},
+    {.when = '\r',        .dest = ALMOST_DONE,        .act1 =  NULL},
+    {.when = ANY,        .dest = PARSE_COMMAND,        .act1 =  readCommand},
 };
 
 static const struct parser_state_transition ST_ARG1 [] =  {
-    {.when = ' ',        .dest = PARSE_ARG2,        .act1 = readArg2,},
-    {.when = '\r',        .dest = DONE,        .act1 =  /*TODO*/,},
-    {.when = ANY,        .dest = PARSE_ARG1,        .act1 =  readArg1,},
+    {.when = ' ',        .dest = PARSE_ARG2,        .act1 = NULL},
+    {.when = '\r',        .dest = ALMOST_DONE,        .act1 =  NULL},
+    {.when = ANY,        .dest = PARSE_ARG1,        .act1 =  readArg1},
 };
 
 static const struct parser_state_transition ST_ARG2 [] =  {
-    {.when = '\r',        .dest = DONE,        .act1 =  /*TODO*/,},
-    {.when = ANY,        .dest = PARSE_ARG2,        .act1 =  readArg2,},
+    {.when = '\r',        .dest = ALMOST_DONE,        .act1 =  NULL},
+    {.when = ANY,        .dest = PARSE_ARG2,        .act1 =  readArg2},
 };
 
 static const struct parser_state_transition ST_DONE [] =  {
-    {.when = "\n",        .dest = DONE,        .act1 =  deliver,},
-    {.when = ANY,        .dest = PARSE_COMMAND,        .act1 =  invalidParameters,},
+    {.when = '\n',        .dest = DONE,        .act1 =  deliver},
+    {.when = ANY,        .dest = PARSE_COMMAND,        .act1 =  invalidParameters},
 };
 
 static const struct parser_state_transition *states [] = {
@@ -76,7 +70,7 @@ static const size_t states_n [] = {
     N(ST_ARG2)
 };
 
-static struct parser_definition definition = {
+const struct parser_definition definition = {
     .states_count = N(states),
     .states       = states,
     .states_n     = states_n,

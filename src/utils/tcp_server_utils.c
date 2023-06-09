@@ -170,6 +170,7 @@ void handleNewConnection(struct selector_key * key){
 	client->fd = clntSock;
 	client->stm.initial = AUTH_STATE;
 	client->stm.max_state = UPDATE_STATE;
+    client->parser = parser_init(parser_no_classes(),&definition);
 	
 	client->stm.states = states;
 	stm_init(&client->stm);
