@@ -1,29 +1,18 @@
 #include "../include/pop3.h"
-#define COMMAND_AMOUNT 10
+
 
 typedef struct commands{
     char command_name[MAX_COMMAND_LEN];
-
     void * action;
 }commands;
 
-static void check_commands(struct selector_key * key, commands * command_list, int command_amount){
-    client_data * data = ATTACHMENT(key);
-    for(int i = 0 ; i < command_amount; i ++){
-        if(strcmp(data->command.command, command_list[i].command_name) == 0){
-            command_list[i].action(key);
-            break;
-        }
-    }
-}
-
-//All pop3 commands
 static const commands command_list_auth[AUTH_COMMAND_AMOUNT] = {
     {.command_name = "PASS",  .action = pass_handler },                                       
     {.command_name = "USER",  .action = user_handler },                                         
     {.command_name = "QUIT", .action = quit_handler},                                
     {.command_name = "CAPA", .action = capa_handler}
 };
+
 static const commands command_list_transaction[TRANSACTION_COMMAND_AMOUNT] = {
     {.command_name = "NOOP",  .action = noop_handler },                                                                                
     {.command_name = "QUIT",  .action = quit_handler},
@@ -34,10 +23,24 @@ static const commands command_list_transaction[TRANSACTION_COMMAND_AMOUNT] = {
     {.command_name = "RSET",  .action = rset_handler},                                 
     {.command_name = "CAPA",  .action = capa_handler}
 };
+
 static const commands command_list_update[UPDATE_COMMAND_AMOUNT] = {                                        
     {.command_name = "QUIT", .action = quit_handler},
 };
 
+static unsigned check_commands(struct selector_key * key, commands * command_list, int command_amount){
+    client_data * data = ATTACHMENT(key);
+    for(int i = 0 ; i < command_amount; i ++){
+        if(strcmp(data->command.command, command_list[i].command_name) == 0){
+            return command_list[i].action(key);
+        }
+    }
+    return data->stm.current.state;
+}
+
+
+//TODO: check if return states are correctly managed
+// SET WRITE INTEREST
 unsigned readHandler(struct selector_key * key) {
     client_data * data = ATTACHMENT(key);
 
@@ -76,35 +79,33 @@ unsigned readHandler(struct selector_key * key) {
                     check_commands(key, command_list_update, UPDATE_COMMAND_AMOUNT);
                     break;
             }
+        }
     }
 
-    return TRANSACTION_STATE;
+    return data->stm.current.state;
 }
 
 
 
+unsigned writeHandler(struct selector_key *key){
+   client_data * data = ATTACHMENT(key);
 
+   size_t writeLimit;
+   ssize_t writeCount;
+   uint8_t* writeBuffer;
 
+   writeBuffer = buffer_read_ptr(&data->wbStruct, &writeLimit);
+   writeCount = send(data->fd, writeBuffer, writeLimit, MSG_NOSIGNAL);
 
-//unsigned writeHandler(struct selector_key *key){
-//    client_data * data = ATTACHMENT(key);
-//
-//    size_t writeLimit;
-//    ssize_t writeCount;
-//    uint8_t* writeBuffer;
-//
-//    writeBuffer = buffer_read_ptr(&data->wbStruct, &writeLimit);
-//    writeCount = send(data->fd, writeBuffer, writeLimit, MSG_NOSIGNAL);
-//
-//    if (writeCount <= 0) {
-//        return -1;
-//    }
-//
-//    buffer_read_adv(&data->wbStruct, writeCount);
-//
-//    //if I can read more from buffer -> return UPDATE_STATE? no estoy seguro, tiene que seguir escribiendo
-//    return 0;
-//}
+   if (writeCount <= 0) {
+       return -1;
+   }
+
+   buffer_read_adv(&data->wbStruct, writeCount);
+
+   //if I can read more from buffer -> return UPDATE_STATE? no estoy seguro, tiene que seguir escribiendo
+   return data->stm.current.state;
+}
 
 
 

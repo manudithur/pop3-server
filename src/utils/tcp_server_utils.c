@@ -115,12 +115,12 @@ static struct state_definition states[] = {
 		//TODO
 		.on_arrival = NULL,
 		.on_read_ready = readHandler,
-        .on_write_ready = NULL
+        .on_write_ready = writeHandler
 	},
     {
-            .state = KEEP_READING,
-            .on_arrival = NULL,
-            .on_read_ready = readHandler
+        .state = KEEP_READING,
+        .on_arrival = NULL,
+        .on_read_ready = readHandler
     },
 	{
 		.state = TRANSACTION_STATE,
@@ -148,6 +148,12 @@ void handleNewConnection(struct selector_key * key){
 	//log(ERROR, "accept() failed");
 		return;
 	}
+
+	if (clntSock > 1023) {
+        close(clntSock);
+        return;
+    }
+
 
 	// clntSock is connected to a client!
 	printSocketAddress((struct sockaddr *) &clntAddr, addrBuffer);

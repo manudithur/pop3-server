@@ -1,15 +1,42 @@
 #include "pop3_actions.h"
-#include "pop3.h"
 
-//complete with all the actions defined in the .action part of the struct in pop3.c file
-//user_handler
-//pass_handler
-//stat_handler
-//list_handler
-//retr_handler
-//dele_handler
-//rset_handler
-//noop_handler
-//quit_handler
-//capa_handler
+unsigned user_handler(selector_key *key){
+
+}
+
+unsigned pass_handler(selector_key *key){
+
+}
+
+unsigned stat_handler(selector_key *key){
+
+}
+
+unsigned list_handler(selector_key *key){
+
+}
+
+unsigned retr_handler(selector_key *key){
+
+}
+
+unsigned dele_handler(selector_key *key){
+
+}
+
+unsigned rset_handler(selector_key *key){
+
+}
+
+unsigned noop_handler(selector_key *key){
+
+}
+
+unsigned quit_handler(selector_key *key){
+
+}
+
+unsigned capa_handler(selector_key *key){
+    
+}
 
