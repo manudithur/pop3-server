@@ -3,22 +3,39 @@
 
 typedef struct commands{
     char command_name[MAX_COMMAND_LEN];
-    enum pop3_states valid_states[];
+
     void * action;
 }commands;
 
+static void check_commands(struct selector_key * key, commands * command_list, int command_amount){
+    client_data * data = ATTACHMENT(key);
+    for(int i = 0 ; i < command_amount; i ++){
+        if(strcmp(data->command.command, command_list[i].command_name) == 0){
+            command_list[i].action(key);
+            break;
+        }
+    }
+}
+
 //All pop3 commands
-static const commands command_list[COMMAND_AMOUNT] = {
-    {.command_name = "NOOP", .valid_states = {TRANSACTION_STATE}, .action = noop_handler },
-    {.command_name = "PASS", .valid_states = {AUTH_STATE }, .action = pass_handler },                                       
-    {.command_name = "USER", .valid_states = {AUTH_STATE }, .action = user_handler },                                         
-    {.command_name = "QUIT", .valid_states = {AUTH_STATE, TRANSACTION_STATE, UPDATE_STATE}, .action = quit_handler},
-    {.command_name = "STAT", .valid_states = {TRANSACTION_STATE}, .action = stat_handler},                                 
-    {.command_name = "LIST", .valid_states = {TRANSACTION_STATE}, .action = list_handler},                                 
-    {.command_name = "RETR", .valid_states = {TRANSACTION_STATE}, .action = retr_handler},                                 
-    {.command_name = "DELE", .valid_states = {TRANSACTION_STATE}, .action = dele_handler},                                 
-    {.command_name = "RSET", .valid_states = {TRANSACTION_STATE}, .action = rset_handler},                                 
-    {.command_name = "CAPA", .valid_states = {AUTH_STATE, TRANSACTION_STATE}, .action = capa_handler}
+static const commands command_list_auth[AUTH_COMMAND_AMOUNT] = {
+    {.command_name = "PASS",  .action = pass_handler },                                       
+    {.command_name = "USER",  .action = user_handler },                                         
+    {.command_name = "QUIT", .action = quit_handler},                                
+    {.command_name = "CAPA", .action = capa_handler}
+};
+static const commands command_list_transaction[TRANSACTION_COMMAND_AMOUNT] = {
+    {.command_name = "NOOP",  .action = noop_handler },                                                                                
+    {.command_name = "QUIT",  .action = quit_handler},
+    {.command_name = "STAT",  .action = stat_handler},                                 
+    {.command_name = "LIST",  .action = list_handler},                                 
+    {.command_name = "RETR",  .action = retr_handler},                                 
+    {.command_name = "DELE",  .action = dele_handler},                                 
+    {.command_name = "RSET",  .action = rset_handler},                                 
+    {.command_name = "CAPA",  .action = capa_handler}
+};
+static const commands command_list_update[UPDATE_COMMAND_AMOUNT] = {                                        
+    {.command_name = "QUIT", .action = quit_handler},
 };
 
 unsigned readHandler(struct selector_key * key) {
@@ -48,36 +65,25 @@ unsigned readHandler(struct selector_key * key) {
         else if(ret-> type == PARSE_ARG2)
             data->command.arg2[data->command.arg2Len++] = ret->c;
         else{
-            //Command ready to analyze
-            for(int i = 0 ; i < COMMAND_AMOUNT; i ++){
-                if(strcmp(data->command.command, command_list[i].command_name) == 0){
-                    for(int j = 0; j < sizeof(command_list[i].valid_states); j++){
-                        if(data->state == command_list[i].valid_states[j]){
-                            command_list[i].action();
-                        }
-                    }
-                }
+            switch(data->stm.current.state){
+                case TRANSACTION_STATE:
+                    check_commands(key, command_list_transaction, TRANSACTION_COMMAND_AMOUNT);
+                    break;
+                case AUTH_STATE:
+                    check_commands(key, command_list_auth, AUTH_COMMAND_AMOUNT);
+                    break;
+                case UPDATE_STATE:
+                    check_commands(key, command_list_update, UPDATE_COMMAND_AMOUNT);
+                    break;
             }
-        }
     }
-    
-
-
-    //unsigned nextAction = parseHandler();
-
-//  while (nextAction == KEEP_READING)
-//    {
-//        readCount = recv(key->fd, readBuffer, readLimit, 0);
-//        if (readCount <= 0) {
-//          return -1;
-//        }
-//        nextAction = parseHandler();
-//    }
-
-    //return nextState;
 
     return TRANSACTION_STATE;
 }
+
+
+
+
 
 
 //unsigned writeHandler(struct selector_key *key){

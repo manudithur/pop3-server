@@ -4,53 +4,62 @@ enum command_state{
     PARSE_COMMAND,
     PARSE_ARG1,
     PARSE_ARG2,
-    DONE
+    DONE,
+    ERROR
 };
 
 
 static void readCommand(struct parser_event *ret, const uint8_t c){
-    ret->type    = KEEP_READING;
-    command_data->command[command_data->command_len] = c;
+    ret->type    = PARSE_COMMAND;
+    ret->n       = 1;
+    ret->data[0] = c;
 }
 
 static void readArg1(struct parser_event *ret, const uint8_t c){
-
+    ret->type    = PARSE_ARG1;
+    ret->n       = 1;
+    ret->data[0] = c;
 }
 
 static void readArg2(struct parser_event *ret, const uint8_t c){
-
+    ret->type    = PARSE_ARG2;
+    ret->n       = 1;
+    ret->data[0] = c;
 }
 
 static void deliver(struct parser_event *ret, const uint8_t c){
+    ret->type = DONE;
 
 }
 
 static void invalidParameters(struct parser_event *ret, const uint8_t c){
-
+    ret->type = ERROR;
+    ret->n = 1;
+    ret->data[0] = c;
 }
 
 
 
 static const struct parser_state_transition ST_COMMAND [] =  {
-    {.when = ' ',        .dest = PARSE_ARG1,        .act1 = /*TODO*/,},
+    {.when = ' ',        .dest = PARSE_ARG1,        .act1 = readArg1,},
     {.when = '\r',        .dest = DONE,        .act1 =  /*TODO*/,},
-    {.when = ANY,        .dest = PARSE_COMMAND,        .act1 =  /*TODO*/,},
+    {.when = ANY,        .dest = PARSE_COMMAND,        .act1 =  readCommand,},
 };
 
 static const struct parser_state_transition ST_ARG1 [] =  {
-    {.when = ' ',        .dest = PARSE_ARG2,        .act1 = /*TODO*/,},
+    {.when = ' ',        .dest = PARSE_ARG2,        .act1 = readArg2,},
     {.when = '\r',        .dest = DONE,        .act1 =  /*TODO*/,},
-    {.when = ANY,        .dest = PARSE_ARG1,        .act1 =  /*TODO*/,},
+    {.when = ANY,        .dest = PARSE_ARG1,        .act1 =  readArg1,},
 };
 
 static const struct parser_state_transition ST_ARG2 [] =  {
     {.when = '\r',        .dest = DONE,        .act1 =  /*TODO*/,},
-    {.when = ANY,        .dest = PARSE_ARG2,        .act1 =  /*TODO*/,},
+    {.when = ANY,        .dest = PARSE_ARG2,        .act1 =  readArg2,},
 };
 
 static const struct parser_state_transition ST_DONE [] =  {
-    {.when = "\n",        .dest = DONE,        .act1 =  /*TODO devuelvo todo para ver si es comando*/,},
-    {.when = ANY,        .dest = PARSE_COMMAND,        .act1 =  /*TODO ERROR EN EL COMANDO*/,},
+    {.when = "\n",        .dest = DONE,        .act1 =  deliver,},
+    {.when = ANY,        .dest = PARSE_COMMAND,        .act1 =  invalidParameters,},
 };
 
 static const struct parser_state_transition *states [] = {
