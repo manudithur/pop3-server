@@ -2,8 +2,6 @@
 #include <stdio.h>
 
 
-
-
 static void readCommand(struct parser_event *ret, const uint8_t c){
     ret->type    = PARSE_COMMAND;
     ret->n       = 1;
@@ -23,7 +21,7 @@ static void readArg2(struct parser_event *ret, const uint8_t c){
 }
 
 static void deliver(struct parser_event *ret, const uint8_t c){
-    printf("done");
+    printf("done\n");
     ret->type = DONE;
 }
 

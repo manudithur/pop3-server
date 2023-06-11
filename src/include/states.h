@@ -5,7 +5,8 @@ enum pop3_states{
     AUTH_STATE =0,
     KEEP_READING,
     TRANSACTION_STATE,
-    UPDATE_STATE
+    UPDATE_STATE,
+    ERROR_STATE
 };
 
 
