@@ -6,6 +6,8 @@ typedef struct commands{
     unsigned (*action)(selector_key * key);
 }commands;
 
+static unsigned lastValidState = AUTH_STATE;
+
 static const commands command_list_auth[AUTH_COMMAND_AMOUNT] = {
     {.command_name = "PASS",  .action = pass_handler },                                       
     {.command_name = "USER",  .action = user_handler },                                         
@@ -39,7 +41,12 @@ static unsigned check_commands(struct selector_key * key, const commands * comma
             return command_list[i].action(key);
         }
     }
-    return ERROR_STATE;
+    errorHandler(key);
+    return data->stm.current->state;
+}
+
+void errorHandler(struct selector_key *key){
+    client_data * data = ATTACHMENT(key);
 }
 
 
@@ -61,18 +68,23 @@ unsigned readHandler(struct selector_key * key) {
 
     buffer_write_adv(&data->rbStruct, readCount);
 
-    while(buffer_can_read(&data->rbStruct)){
+    while(buffer_can_read(&data->rbStruct)) {
 
-        const struct parser_event * ret = parser_feed(data->parser, buffer_read(&data->rbStruct));
+        const struct parser_event *ret = parser_feed(data->parser, buffer_read(&data->rbStruct));
 
         printf("%c\n", ret->data[0]);
 
-        if(ret->type == PARSE_COMMAND){
+        if (ret->type == PARSE_COMMAND) {
             data->command.command[data->command.commandLen++] = ret->data[0];
-        }else if(ret->type == PARSE_ARG1)
+            data->command.command[data->command.commandLen] = '\0';
+        } else if (ret->type == PARSE_ARG1) {
+
             data->command.arg1[data->command.arg1Len++] = ret->data[0];
-        else if(ret->type == PARSE_ARG2)
+            data->command.arg1[data->command.arg1Len] = '\0';
+        } else if (ret->type == PARSE_ARG2) {
             data->command.arg2[data->command.arg2Len++] = ret->data[0];
+            data->command.arg2[data->command.arg2Len] = '\0';
+        }
         else if(ret->type == ALMOST_DONE){
             printf("almost done\n");
             //Que no haga nada
@@ -91,7 +103,6 @@ unsigned readHandler(struct selector_key * key) {
                     break;
             }
 
-            selector_set_interest_key(key, OP_WRITE);
 
             parser_reset(data->parser);
             data->command.commandLen = 0;
@@ -101,10 +112,15 @@ unsigned readHandler(struct selector_key * key) {
             data->command.arg1[0] = '\0';
             data->command.arg2[0] = '\0';
 
+            selector_set_interest_key(key, OP_WRITE);
+
             if(retState == ERROR_STATE){
                 printf("error state\n");
             }
-
+            else{
+                lastValidState = retState;
+            }
+            printf("ESTE ES EL RETSTATE:%d\n", retState);
             return retState;
         }
     }
@@ -115,7 +131,6 @@ unsigned readHandler(struct selector_key * key) {
 
 
 unsigned writeHandler(struct selector_key *key){
-    selector_set_interest_key(key, OP_READ);
     client_data * data = ATTACHMENT(key);
 
     size_t writeLimit;
@@ -126,10 +141,12 @@ unsigned writeHandler(struct selector_key *key){
     writeCount = send(data->fd, writeBuffer, writeLimit, MSG_NOSIGNAL);
 
     if (writeCount <= 0) {
-        return -1;
+        return ERROR_STATE;
     }
 
     buffer_read_adv(&data->wbStruct, writeCount);
+    selector_set_interest_key(key, OP_READ);
+//
 
     //if I can read more from buffer -> return UPDATE_STATE? no estoy seguro, tiene que seguir escribiendo
     return data->stm.current->state;

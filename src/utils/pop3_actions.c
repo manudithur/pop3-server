@@ -34,11 +34,11 @@ unsigned noop_handler(selector_key *key){
     printf("Llegue");
     client_data * data = ATTACHMENT(key);
     char buf[] = {"+OK NOOP\r\n"};
-
     for (int i = 0; buf[i] != '\0'; i++){
-        buffer_write(&data->wbStruct,buf[i]);
+        if (buffer_can_write(&data->wbStruct)){
+            buffer_write(&data->wbStruct,buf[i]);
+        }
     }
-    writeHandler(key);
     return data->stm.current->state;
 }
 

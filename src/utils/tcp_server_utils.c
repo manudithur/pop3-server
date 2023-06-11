@@ -117,24 +117,26 @@ static struct state_definition states[] = {
 		.on_read_ready = readHandler,
         .on_write_ready = writeHandler
 	},
-    {
-        .state = KEEP_READING,
-        .on_arrival = NULL,
-        .on_read_ready = readHandler
-    },
 	{
 		.state = TRANSACTION_STATE,
 		//TODO
 		.on_arrival = NULL,
 		.on_read_ready = readHandler,
-        .on_write_ready = NULL
+        .on_write_ready = writeHandler
 	},
 	{
 		.state = UPDATE_STATE,
 		//TODO
 		.on_arrival = NULL,
-		.on_write_ready = NULL
+		.on_write_ready = writeHandler,
+        .on_read_ready = readHandler
 	},
+    {
+        .state = ERROR_STATE,
+        .on_arrival = NULL,  //TODO: manejar error
+        .on_read_ready = readHandler,
+        .on_write_ready = writeHandler
+    }
 };
 
 void handleNewConnection(struct selector_key * key){
@@ -169,7 +171,7 @@ void handleNewConnection(struct selector_key * key){
 	buffer_init(&client->wbStruct, BUFFER_LEN, client->wb);
 	client->fd = clntSock;
 	client->stm.initial = AUTH_STATE;
-	client->stm.max_state = UPDATE_STATE;
+	client->stm.max_state = ERROR_STATE;
     client->parser = parser_init(parser_no_classes(),&definition);
 	
 	client->stm.states = states;

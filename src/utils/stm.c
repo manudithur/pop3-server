@@ -66,6 +66,7 @@ unsigned
 stm_handler_write(struct state_machine *stm, struct selector_key *key) {
     handle_first(stm, key);
     if(stm->current->on_write_ready == 0) {
+        printf("%d", stm->current->state);
         abort();
     }
     const unsigned int ret = stm->current->on_write_ready(key);
