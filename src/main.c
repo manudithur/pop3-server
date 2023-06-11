@@ -83,5 +83,10 @@ int main(int argc , char *argv[]){
         }
     }
 
+    finish:
+    selector_destroy(selector);
+    selector_close();
+    close(serverSocket);
+
     return 0;
 }
