@@ -6,6 +6,7 @@
 #include "tcp_server_utils.h"
 #include "selector.h"
 #include "buffer.h"
+#include <dirent.h>
 #define BUFFER_LENGTH 10
 
 unsigned user_handler(selector_key *key);
