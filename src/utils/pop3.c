@@ -41,12 +41,7 @@ static unsigned check_commands(struct selector_key * key, const commands * comma
             return command_list[i].action(key);
         }
     }
-    errorHandler(key);
     return data->stm.current->state;
-}
-
-void errorHandler(struct selector_key *key){
-    client_data * data = ATTACHMENT(key);
 }
 
 
@@ -71,14 +66,12 @@ unsigned readHandler(struct selector_key * key) {
     while(buffer_can_read(&data->rbStruct)) {
 
         const struct parser_event *ret = parser_feed(data->parser, buffer_read(&data->rbStruct));
-
         printf("%c\n", ret->data[0]);
 
         if (ret->type == PARSE_COMMAND) {
             data->command.command[data->command.commandLen++] = ret->data[0];
             data->command.command[data->command.commandLen] = '\0';
         } else if (ret->type == PARSE_ARG1) {
-
             data->command.arg1[data->command.arg1Len++] = ret->data[0];
             data->command.arg1[data->command.arg1Len] = '\0';
         } else if (ret->type == PARSE_ARG2) {
@@ -124,6 +117,7 @@ unsigned readHandler(struct selector_key * key) {
             return retState;
         }
     }
+    printf("aca tuve algun error");
     selector_set_interest_key(key, OP_WRITE);
     return data->stm.current->state;
 }
