@@ -1,5 +1,5 @@
 #include "../include/pop3.h"
-
+#include <stdio.h>
 
 typedef struct commands{
     char command_name[MAX_COMMAND_LEN];
@@ -39,14 +39,13 @@ static unsigned check_commands(struct selector_key * key, const commands * comma
 }
 
 
-//TODO: check if return states are correctly managed
-// SET WRITE INTEREST
+// TODO: check if return states are correctly managed
 unsigned readHandler(struct selector_key * key) {
     client_data * data = ATTACHMENT(key);
 
     size_t readLimit;
     ssize_t readCount;
-    uint8_t* readBuffer;
+    uint8_t * readBuffer;
 
     readBuffer = buffer_write_ptr(&data->rbStruct, &readLimit);
     readCount = recv(key->fd, readBuffer, readLimit, 0);
@@ -61,13 +60,25 @@ unsigned readHandler(struct selector_key * key) {
 
         const struct parser_event * ret = parser_feed(data->parser, buffer_read(&data->rbStruct));
 
-        if(ret->type == PARSE_COMMAND)
+        printf("%c\n", ret->data[0]);
+
+        if(ret->data[0] == '\r'){
+          printf("R");
+        }
+
+        if(ret->type == PARSE_COMMAND){
+            printf("command\n");
             data->command.command[data->command.commandLen++] = ret->data[0];
-        else if(ret->type == PARSE_ARG1)
+        }else if(ret->type == PARSE_ARG1)
             data->command.arg1[data->command.arg1Len++] = ret->data[0];
         else if(ret->type == PARSE_ARG2)
             data->command.arg2[data->command.arg2Len++] = ret->data[0];
+        else if(ret->type == ALMOST_DONE){
+            printf("almost done");
+            //Que no haga nada
+        }
         else{
+          printf("else");
             switch(data->stm.current->state){
                 case TRANSACTION_STATE:
                     check_commands(key, command_list_transaction, TRANSACTION_COMMAND_AMOUNT);

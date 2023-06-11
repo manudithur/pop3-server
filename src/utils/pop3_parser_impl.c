@@ -1,4 +1,5 @@
 #include "pop3_parser_impl.h"
+#include <stdio.h>
 
 
 
@@ -22,8 +23,8 @@ static void readArg2(struct parser_event *ret, const uint8_t c){
 }
 
 static void deliver(struct parser_event *ret, const uint8_t c){
+    printf("done");
     ret->type = DONE;
-
 }
 
 static void invalidParameters(struct parser_event *ret, const uint8_t c){
@@ -32,11 +33,16 @@ static void invalidParameters(struct parser_event *ret, const uint8_t c){
     ret->data[0] = c;
 }
 
+static void almostDone(struct parser_event *ret, const uint8_t c){
+  ret->type = ALMOST_DONE;
+  printf("detected r\n");
+}
+
 
 
 static const struct parser_state_transition ST_COMMAND [] =  {
     {.when = ' ',        .dest = PARSE_ARG1,        .act1 = NULL},
-    {.when = '\r',        .dest = ALMOST_DONE,        .act1 =  NULL},
+    {.when = '\r',        .dest = ALMOST_DONE,        .act1 =  almostDone},
     {.when = ANY,        .dest = PARSE_COMMAND,        .act1 =  readCommand},
 };
 
@@ -59,7 +65,8 @@ static const struct parser_state_transition ST_DONE [] =  {
 static const struct parser_state_transition *states [] = {
     ST_COMMAND,
     ST_ARG1,
-    ST_ARG2
+    ST_ARG2,
+    ST_DONE
 };
 
 #define N(x) (sizeof(x)/sizeof((x)[0]))
@@ -67,7 +74,8 @@ static const struct parser_state_transition *states [] = {
 static const size_t states_n [] = {
     N(ST_COMMAND),
     N(ST_ARG1),
-    N(ST_ARG2)
+    N(ST_ARG2),
+    N(ST_DONE)
 };
 
 const struct parser_definition definition = {

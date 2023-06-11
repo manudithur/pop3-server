@@ -1,4 +1,5 @@
 #include "pop3_actions.h"
+#include <stdio.h>
 
 unsigned user_handler(selector_key *key){
 
@@ -30,6 +31,7 @@ unsigned rset_handler(selector_key *key){
 }
 
 unsigned noop_handler(selector_key *key){
+    printf("Llegue");
     client_data * data = ATTACHMENT(key);
     char buf[] = {"+OK NOOP\r\n"};
 
