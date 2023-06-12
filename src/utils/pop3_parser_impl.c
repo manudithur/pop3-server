@@ -21,7 +21,6 @@ static void readArg2(struct parser_event *ret, const uint8_t c){
 }
 
 static void deliver(struct parser_event *ret, const uint8_t c){
-    printf("done\n");
     ret->type = DONE;
 }
 
@@ -33,7 +32,6 @@ static void invalidParameters(struct parser_event *ret, const uint8_t c){
 
 static void almostDone(struct parser_event *ret, const uint8_t c){
   ret->type = ALMOST_DONE;
-  printf("detected r\n");
 }
 
 
