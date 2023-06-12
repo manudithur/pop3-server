@@ -37,9 +37,19 @@ static unsigned check_commands(struct selector_key * key, const commands * comma
             return command_list[i].action(key);
         }
     }
-    return data->stm.current->state;
+    return errorHandler(key);
 }
 
+unsigned errorHandler(struct selector_key *key){
+    client_data * data = ATTACHMENT(key);
+    char buf[] = {"-ERR\r\n"};
+    for (int i = 0; buf[i] != '\0'; i++){
+        if (buffer_can_write(&data->wbStruct)){
+            buffer_write(&data->wbStruct,buf[i]);
+        }
+    }
+    return lastValidState;
+}
 
 // TODO: check if return states are correctly managed
 unsigned readHandler(struct selector_key * key) {
@@ -104,6 +114,8 @@ unsigned readHandler(struct selector_key * key) {
 
             if(retState == ERROR_STATE){
                 printf("error state\n");
+                printf("cambie el retstate a %d\n", lastValidState);
+                retState = lastValidState;
             }
             else{
                 lastValidState = retState;
