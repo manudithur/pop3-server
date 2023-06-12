@@ -80,7 +80,6 @@ unsigned rset_handler(selector_key *key){
 }
 
 unsigned noop_handler(selector_key *key){
-    printf("Llegue");
     client_data * data = ATTACHMENT(key);
     char buf[] = {"+OK NOOP\r\n"};
     for (int i = 0; buf[i] != '\0'; i++){

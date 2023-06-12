@@ -39,19 +39,19 @@ static void almostDone(struct parser_event *ret, const uint8_t c){
 
 
 static const struct parser_state_transition ST_COMMAND [] =  {
-    {.when = ' ',        .dest = PARSE_ARG1,        .act1 = NULL},
+    {.when = ' ',        .dest = PARSE_ARG1,        .act1 = almostDone},
     {.when = '\r',        .dest = ALMOST_DONE,        .act1 =  almostDone},
     {.when = ANY,        .dest = PARSE_COMMAND,        .act1 =  readCommand},
 };
 
 static const struct parser_state_transition ST_ARG1 [] =  {
-    {.when = ' ',        .dest = PARSE_ARG2,        .act1 = NULL},
-    {.when = '\r',        .dest = ALMOST_DONE,        .act1 =  NULL},
+    {.when = ' ',        .dest = PARSE_ARG2,        .act1 = almostDone},
+    {.when = '\r',        .dest = ALMOST_DONE,        .act1 =  almostDone},
     {.when = ANY,        .dest = PARSE_ARG1,        .act1 =  readArg1},
 };
 
 static const struct parser_state_transition ST_ARG2 [] =  {
-    {.when = '\r',        .dest = ALMOST_DONE,        .act1 =  NULL},
+    {.when = '\r',        .dest = ALMOST_DONE,        .act1 =  almostDone},
     {.when = ANY,        .dest = PARSE_ARG2,        .act1 =  readArg2},
 };
 

@@ -31,13 +31,9 @@ static const commands command_list_update[UPDATE_COMMAND_AMOUNT] = {
 };
 
 static unsigned check_commands(struct selector_key * key, const commands * command_list, int command_amount){
-    printf("check commands\n");
     client_data * data = ATTACHMENT(key);
-    printf("command: %s\n", data->command.command);
-    printf("versus %s\n", command_list[0].command_name);
     for(int i = 0 ; i < command_amount; i ++){
         if(strcmp(data->command.command, command_list[i].command_name) == 0){
-            printf("command found\n");
             return command_list[i].action(key);
         }
     }
@@ -66,7 +62,7 @@ unsigned readHandler(struct selector_key * key) {
     while(buffer_can_read(&data->rbStruct)) {
 
         const struct parser_event *ret = parser_feed(data->parser, buffer_read(&data->rbStruct));
-        printf("%c\n", ret->data[0]);
+    
 
         if (ret->type == PARSE_COMMAND) {
             data->command.command[data->command.commandLen++] = ret->data[0];
@@ -79,11 +75,10 @@ unsigned readHandler(struct selector_key * key) {
             data->command.arg2[data->command.arg2Len] = '\0';
         }
         else if(ret->type == ALMOST_DONE){
-            printf("almost done\n");
             //Que no haga nada
         }
         else{
-          printf("else\n");
+          
             switch(data->stm.current->state){
                 case TRANSACTION_STATE:
                     retState =  check_commands(key, command_list_transaction, TRANSACTION_COMMAND_AMOUNT);
@@ -113,12 +108,11 @@ unsigned readHandler(struct selector_key * key) {
             else{
                 lastValidState = retState;
             }
-            printf("ESTE ES EL RETSTATE:%d\n", retState);
             return retState;
         }
     }
-    printf("aca tuve algun error");
-    selector_set_interest_key(key, OP_WRITE);
+ 
+    //selector_set_interest_key(key, OP_WRITE);
     return data->stm.current->state;
 }
 
