@@ -7,10 +7,29 @@
 #define PATH_MAX 300
 
 unsigned user_handler(selector_key *key){
+    client_data * data = ATTACHMENT(key);
+    char buf[] = {"+OK USER\r\n"};
+    data->username=malloc(strlen((data->command.arg1))+1);
+    strcpy(data->username,data->command.arg1);
+    for (int i = 0; buf[i] != '\0'; i++){
+        if (buffer_can_write(&data->wbStruct)){
+            buffer_write(&data->wbStruct,buf[i]);
+        }
+    }
+    return AUTH_STATE;
 
 }
 
 unsigned pass_handler(selector_key *key){
+      client_data * data = ATTACHMENT(key);
+    char buf[] = {"+OK PASS\r\n"};
+    for (int i = 0; buf[i] != '\0'; i++){
+        if (buffer_can_write(&data->wbStruct)){
+            buffer_write(&data->wbStruct,buf[i]);
+        }
+    }
+    return TRANSACTION_STATE;
+
 
 }
 

@@ -84,7 +84,7 @@ unsigned readHandler(struct selector_key * key) {
                     retState =  check_commands(key, command_list_transaction, TRANSACTION_COMMAND_AMOUNT);
                     break;
                 case AUTH_STATE:
-                    retState =  check_commands(key, command_list_transaction, AUTH_COMMAND_AMOUNT);
+                    retState =  check_commands(key, command_list_auth, AUTH_COMMAND_AMOUNT);
                     break;
                 case UPDATE_STATE:
                     retState = check_commands(key, command_list_update, UPDATE_COMMAND_AMOUNT);
