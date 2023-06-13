@@ -135,7 +135,7 @@ static struct state_definition states[] = {
         .state = ERROR_STATE,
         .on_arrival = NULL,  //TODO: manejar error
         .on_read_ready = readHandler,
-        .on_write_ready = writeHandler
+        .on_write_ready = errorHandler
     }
 };
 
