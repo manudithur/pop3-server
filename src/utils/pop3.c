@@ -37,7 +37,7 @@ static unsigned check_commands(struct selector_key * key, const commands * comma
             return command_list[i].action(key);
         }
     }
-    return errorHandler(key);
+    return ERROR_STATE;
 }
 
 unsigned errorHandler(struct selector_key *key){
