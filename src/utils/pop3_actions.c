@@ -94,7 +94,34 @@ unsigned rset_handler(selector_key *key){
         }
     }
     data->username = NULL;  //Devuelvo al usuario al momento 0 de la aplicacion. No puso su usuario y esta en authorization state.
-    //TODO: desborrar los mensajes borrados con dele (estan en un trash)
+
+    DIR* directory;
+    struct dirent* file;
+
+    char * srcDir = "src/mail/trash"; //TODO: poner paths de mail y trash
+    char * destDir = "src/mail";
+
+    directory = opendir(srcDir);
+
+    // Iterate over files in the source directory
+    while ((file = readdir(directory)) != NULL) {
+        // Ignore "." and ".." entries
+        if (strcmp(file->d_name, ".") == 0 || strcmp(file->d_name, "..") == 0) {
+            continue;
+        }
+        char srcPath[256];
+        char destPath[256];
+        snprintf(srcPath, sizeof(srcPath), "%s/%s", srcDir, file->d_name);
+        snprintf(destPath, sizeof(destPath), "%s/%s", destDir, file->d_name);
+
+        // Move the file
+        if (rename(srcPath, destPath) != 0) {
+            printf("Failed to move file: %s\n", srcPath);
+        }
+    }
+
+    closedir(directory);
+
     return AUTH_STATE;
 }
 
@@ -118,7 +145,7 @@ unsigned quit_handler(selector_key *key){
         }
     }
 
-    const char* directory_path = "/"; // TODO:Poner el path del trash
+    const char* directory_path = "src/mail/trash"; // TODO:Poner el path del trash
 
     DIR* directory = opendir(directory_path);
     struct dirent* file;
@@ -127,11 +154,7 @@ unsigned quit_handler(selector_key *key){
         if (strcmp(file->d_name, ".") != 0 && strcmp(file->d_name, "..") != 0) {
             char file_path[100];
             snprintf(file_path, sizeof(file_path), "%s/%s", directory_path, file->d_name);
-//            if (remove(file_path) == 0) {
-//                printf("Deleted file: %s\n", file_path);
-//            } else {
-//                printf("Failed to delete file: %s\n", file_path);
-//            }
+            remove(file_path);
         }
     }
 
