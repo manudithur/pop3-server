@@ -40,29 +40,28 @@ unsigned stat_handler(selector_key *key){
     struct stat fileStat;
     int count = 0;
     long long int totalSize = 0;
-    const char *path = "/TODO/enter/mail/dir/path/here";
+    const char *path = "src/mail_test";
     char resultBuffer[256];
 
     directory = opendir(path);
     if (directory == NULL) {
-        snprintf(resultBuffer, sizeof(resultBuffer), "ERROR - unable to open mailbox");
+        printf("ERROR - unable to open mailbox");
         return ERROR_STATE;
     }
     while ((entry = readdir(directory)) != NULL) {
+        char filePath[PATH_MAX];
+        snprintf(filePath, PATH_MAX, "%s/%s", path, entry->d_name);
+        if (stat(filePath, &fileStat) == 0) {
         if (S_ISREG(fileStat.st_mode)) { 
             count++;
-        
-            char filePath[PATH_MAX];
-            snprintf(filePath, PATH_MAX, "%s/%s", path, entry->d_name);
-            if (stat(filePath, &fileStat) == 0) {
-                totalSize += fileStat.st_size;
+            totalSize += fileStat.st_size;
             }
         }
     }
 
     closedir(directory);
 
-    snprintf(resultBuffer, sizeof(resultBuffer), "+OK %d %lld", count, totalSize);
+    snprintf(resultBuffer, sizeof(resultBuffer), "+OK %d %lld\r\n", count, totalSize);
     for(int i = 0; i < strlen(resultBuffer); i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,resultBuffer[i]);
@@ -72,7 +71,43 @@ unsigned stat_handler(selector_key *key){
 }
 
 unsigned list_handler(selector_key *key){
+    DIR* directory;
+    client_data * data = ATTACHMENT(key);
+    struct dirent* entry;
+    struct stat fileStat;
+    long long int totalSize = 0;
+    int count = 0;
+    const char *path = "src/mail_test";
+    char resultBuffer[256];
 
+    directory = opendir(path);
+    if (directory == NULL) {
+        printf("ERROR - unable to open mailbox\n");
+        return ERROR_STATE;
+    }
+    snprintf(resultBuffer, sizeof(resultBuffer), "+OK LIST\n");
+    while ((entry = readdir(directory)) != NULL) {
+        char filePath[PATH_MAX];
+        snprintf(filePath, PATH_MAX, "%s/%s", path, entry->d_name);
+        if (stat(filePath, &fileStat) == 0) {
+            if (S_ISREG(fileStat.st_mode)) { 
+                printf("File %d size: %lld\n", count, fileStat.st_size);
+                count++;
+                 snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer),
+                         "%d %lld\n", count, fileStat.st_size);
+            }
+        }
+    }
+
+    closedir(directory);
+    snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer), "\r\n");
+
+    for(int i = 0; i < strlen(resultBuffer); i++){
+        if (buffer_can_write(&data->wbStruct)){
+            buffer_write(&data->wbStruct,resultBuffer[i]);
+        }
+    }
+    return data->stm.current->state;
 }
 
 unsigned retr_handler(selector_key *key){
@@ -110,34 +145,34 @@ unsigned noop_handler(selector_key *key){
 }
 
 unsigned quit_handler(selector_key *key){
-    client_data * data = ATTACHMENT(key);
-    char buf[] = {"+OK GOODBYE\r\n"};
-    for (int i = 0; buf[i] != '\0'; i++){
-        if (buffer_can_write(&data->wbStruct)){
-            buffer_write(&data->wbStruct,buf[i]);
-        }
-    }
+//     client_data * data = ATTACHMENT(key);
+//     char buf[] = {"+OK GOODBYE\r\n"};
+//     for (int i = 0; buf[i] != '\0'; i++){
+//         if (buffer_can_write(&data->wbStruct)){
+//             buffer_write(&data->wbStruct,buf[i]);
+//         }
+//     }
 
-    const char* directory_path = "/"; // TODO:Poner el path del trash
+//     const char* directory_path = "/"; // TODO:Poner el path del trash
 
-    DIR* directory = opendir(directory_path);
-    struct dirent* file;
+//     DIR* directory = opendir(directory_path);
+//     struct dirent* file;
 
-    while ((file = readdir(directory)) != NULL) {
-        if (strcmp(file->d_name, ".") != 0 && strcmp(file->d_name, "..") != 0) {
-            char file_path[100];
-            snprintf(file_path, sizeof(file_path), "%s/%s", directory_path, file->d_name);
-//            if (remove(file_path) == 0) {
-//                printf("Deleted file: %s\n", file_path);
-//            } else {
-//                printf("Failed to delete file: %s\n", file_path);
-//            }
-        }
-    }
+//     while ((file = readdir(directory)) != NULL) {
+//         if (strcmp(file->d_name, ".") != 0 && strcmp(file->d_name, "..") != 0) {
+//             char file_path[100];
+//             snprintf(file_path, sizeof(file_path), "%s/%s", directory_path, file->d_name);
+// //            if (remove(file_path) == 0) {
+// //                printf("Deleted file: %s\n", file_path);
+// //            } else {
+// //                printf("Failed to delete file: %s\n", file_path);
+// //            }
+//         }
+//     }
 
-    closedir(directory);
-    //finishConnection();
-    return data->stm.current->state;
+//     closedir(directory);
+//     //finishConnection();
+//     return data->stm.current->state;
 }
 
 unsigned capa_handler(selector_key *key){
