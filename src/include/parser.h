@@ -64,10 +64,10 @@ typedef struct parser {
     /** definición de estados */
     const struct parser_definition *def;
 
-    /* estado actual */
+    /** estado actual */
     unsigned            state;
 
-    /* evento que se retorna */
+    /** evento que se retorna */
     struct parser_event e1;
     /* evento que se retorna */
     struct parser_event e2;
