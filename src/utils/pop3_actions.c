@@ -197,10 +197,10 @@ unsigned retr_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
     struct stat fileStat;
     long long int totalSize = 0;
-    char dirPath[PATH_MAX];
-    snprintf(dirPath, PATH_MAX, "src/mail_test/");
-    snprintf(dirPath + strlen(dirPath), PATH_MAX, "%s/", data->username);
-    snprintf(dirPath + strlen(dirPath), PATH_MAX, "cur/");
+    char dirPath[PATH_MAX_LENGTH];
+    snprintf(dirPath, PATH_MAX_LENGTH, "src/mail_test/");
+    snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "%s/", data->username);
+    snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "cur/");
     if (data->command.arg2[0] != '\0' || isNumber(data->command.arg1) == false){
         return ERROR_STATE;
     }
@@ -212,7 +212,7 @@ unsigned retr_handler(selector_key *key){
     }
      struct dirent *entry;
     int fileCount = 0;
-    char filePath[PATH_MAX];
+    char filePath[PATH_MAX_LENGTH];
     while ((entry = readdir(dir)) != NULL) {
         // Ignore "." and ".." directories
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
@@ -221,7 +221,7 @@ unsigned retr_handler(selector_key *key){
         if (fileCount == targetFileIndex) {
             // Found the desired file
             
-            snprintf(filePath, PATH_MAX, "%s%s", dirPath, entry->d_name);
+            snprintf(filePath, PATH_MAX_LENGTH, "%s%s", dirPath, entry->d_name);
             printf("File path: %s\n", filePath);
             fileCount++;
             break;
@@ -332,8 +332,6 @@ unsigned rset_handler(selector_key *key){
             buffer_write(&data->wbStruct,buf[i]);
         }
     }
-    data->username = NULL;  //Devuelvo al usuario al momento 0 de la aplicacion. No puso su usuario y esta en authorization state.
-
     DIR* directory;
     struct dirent* file;
 
@@ -361,7 +359,7 @@ unsigned rset_handler(selector_key *key){
 
     closedir(directory);
 
-    return AUTH_STATE;
+    return TRANSACTION_STATE;
 }
 
 unsigned noop_handler(selector_key *key){
