@@ -7,7 +7,23 @@
 #include "selector.h"
 #include "buffer.h"
 #include <dirent.h>
+#include <stdio.h>
+#include <dirent.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <sys/socket.h>
 #define BUFFER_LENGTH 10
+#define BUFFER 5000
+
+typedef struct email{
+    int email_fd;
+    int parent_fd;
+    struct buffer bStruct;
+    uint8_t buffer[BUFFER];
+    struct buffer * pStruct; //acceso al buffer del padre
+}email;
 
 unsigned user_handler(selector_key *key);
 unsigned pass_handler(selector_key *key);

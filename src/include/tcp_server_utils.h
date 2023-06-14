@@ -17,6 +17,7 @@
 #include "parser.h"
 #include "pop3.h"
 #include "pop3_parser_impl.h"
+#include "pop3_actions.h"
 
 #define BUFFER_LEN 5000
 #define MAX_COMMAND_LEN 40
@@ -43,6 +44,7 @@ typedef struct client_data{
     int fd;
     struct parser * parser;
     struct command_data command;
+    struct email * emailptr;
 }client_data;
 
 

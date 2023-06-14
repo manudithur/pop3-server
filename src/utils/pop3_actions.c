@@ -1,9 +1,6 @@
 #include "pop3_actions.h"
-#include <stdio.h>
-#include <dirent.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+
+
 #define PATH_MAX 300
 
 unsigned user_handler(selector_key *key){
@@ -114,6 +111,8 @@ void close_mail_handler(selector_key * key){
 }
 
 void write_mail_handler(selector_key * key){
+
+
 }
 
 void block_mail_handler(selector_key * key){
@@ -126,42 +125,43 @@ fd_handler mail_handler ={
     .handle_block = block_mail_handler
 };
 
-typedef struct email{
-    int email_fd;
-    int parent_fd;
-    struct buffer bStruct;
-    uint8_t buffer[BUFFER_LEN];
-    struct buffer * pStruct; //acceso al buffer del padre
-}email;
+
 
 void read_mail_handler(struct selector_key *key){
-
+    
     email * email_data = ((email *)(key)->data);
+    
     buffer * mail_buffer = &email_data->bStruct;
+    //selector_set_interest(key->s, email_data->parent_fd, OP_READ);
     
     size_t readLimit;
     ssize_t readCount;    
     uint8_t * readBuffer;
     readBuffer = buffer_write_ptr(mail_buffer, &readLimit);
-    readCount = recv(key->fd, readBuffer, readLimit, 0);
+
+    readCount = read(email_data->email_fd, readBuffer, readLimit);
+    buffer_write_adv(&email_data->bStruct, readCount);
+
 
     if (readCount <= 0){
     //    return -1;
         return;
     }
-
-    buffer_write_adv(&email_data->bStruct, readCount);
-
+    printf("ANTES\n");
+    
     //deberia preguntar si el otro puede escribir tambien?
     while(buffer_can_read(mail_buffer)){
-        uint8_t * readBuffer;
-        size_t readLimit;
-        readBuffer = buffer_read_ptr(mail_buffer, &readLimit);
+        readBuffer=buffer_read_ptr(mail_buffer, &readLimit);
         buffer_write(email_data->pStruct, *readBuffer); //escribo lo que lei en el buffer del padre
+        buffer_read_adv(mail_buffer, 1);
+        printf("LEI: %c\n", *readBuffer);
     }
-
+    buffer_write(email_data->pStruct, '\r');
+    buffer_write(email_data->pStruct, '\n');
+    printf("2\n");
     //SOLO SI TERMINE DE ESCRIBIR EL MAIL, O SI NO HAY MAS LUGAR EN EL BUFFER DEL PADRE
     //selector_set_interest_key(key, OP_NOOP);
+    
     selector_set_interest(key->s, email_data->parent_fd, OP_WRITE);
 
    // return TRANSACTION_STATE;
@@ -169,17 +169,36 @@ void read_mail_handler(struct selector_key *key){
 
 
 unsigned retr_handler(selector_key *key){
-    //primero deberia fijarme si estan bien los argumentos, si existe el mail etc.
-
+    //TODO:primero deberia fijarme si estan bien los argumentos, si existe el mail etc.
     client_data * data = ATTACHMENT(key);
-
-    printf("retr handler\n");
-
+    struct stat fileStat;
+    long long int totalSize = 0;
+    char * filePath= "src/mail_test/mail1";
+    //printf("retr handler\n");
+    size_t writeLimit;
     email * email_data = malloc(sizeof(email));
-    email_data->email_fd = open("src/mail_test/mail1", O_RDONLY);
+    email_data->email_fd = open(filePath, O_RDONLY);
     email_data->parent_fd = data->fd;
-    buffer_init(&email_data->bStruct, BUFFER_LEN, email_data->buffer);
+    email_data->pStruct = &data->wbStruct;
+    if (stat(filePath, &fileStat) == 0) {  
+            if (S_ISREG(fileStat.st_mode)) {
+                totalSize=fileStat.st_size;
+            }
+    }
+    char aux[50] = {0};
+    uint8_t * writeBuffer = buffer_write_ptr(&data->wbStruct, &writeLimit );
+    snprintf(aux, sizeof(aux), "+OK %lld octets\n", totalSize);
+    for(int i = 0; i < strlen(aux); i++){
+        if (buffer_can_write(&data->wbStruct)){
+            buffer_write(&data->wbStruct,aux[i]);
+        }
+    }
+    buffer_write_adv(&data->wbStruct, strlen(aux));
 
+
+    data->emailptr = email_data;
+    buffer_init(&email_data->bStruct, BUFFER_LEN, email_data->buffer);
+    printf("llegue1\n");
     
     selector_register(key->s, email_data->email_fd, &mail_handler, OP_READ, email_data);
 

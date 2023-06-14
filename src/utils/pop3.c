@@ -100,7 +100,17 @@ unsigned readHandler(struct selector_key * key) {
                     retState = check_commands(key, command_list_update, UPDATE_COMMAND_AMOUNT);
                     break;
             }
-
+              if(strcmp(data->command.command, "RETR") == 0){
+                printf("entre al chequeo\n");
+                if(buffer_can_read(&data->wbStruct)){
+                    selector_set_interest_key(key, OP_WRITE);
+                }else{
+                    selector_set_interest(key->s, data->emailptr->email_fd, OP_READ);
+                    selector_set_interest_key(key, OP_NOOP);
+                }
+            }else{
+                selector_set_interest_key(key, OP_WRITE);
+            }
 
             parser_reset(data->parser);
             data->command.commandLen = 0;
@@ -110,7 +120,8 @@ unsigned readHandler(struct selector_key * key) {
             data->command.arg1[0] = '\0';
             data->command.arg2[0] = '\0';
 
-            selector_set_interest_key(key, OP_WRITE);
+            
+           
 
             if(retState == ERROR_STATE){
                 printf("error state\n");
@@ -141,6 +152,7 @@ unsigned writeHandler(struct selector_key *key){
     writeCount = send(data->fd, writeBuffer, writeLimit, MSG_NOSIGNAL);
 
     if (writeCount <= 0) {
+        printf("error en write\n");
         return ERROR_STATE;
     }
 
