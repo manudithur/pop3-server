@@ -296,7 +296,7 @@ unsigned quit_handler(selector_key *key){
 
 unsigned capa_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
-    char buf[] = {"+OK CAPA\nUSER\nPASS\nQUIT\nCAPA\nLIST\nRETR\nSTAT\nDELE\nNOOP\nRSET\n"};
+    char buf[] = {"+OK CAPA\nUSER\nPASS\nQUIT\nCAPA\nLIST\nRETR\nSTAT\nDELE\nNOOP\nRSET\r\n"};
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,buf[i]);
