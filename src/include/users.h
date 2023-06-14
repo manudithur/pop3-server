@@ -15,6 +15,11 @@
 #define USER_NOT_FOUND -1
 #define USER_FOUND 1
 
+#define TOKEN_UPDATED_SUCCESSFULLY 1
+#define TOKEN_UPDATE_FAILED -1
+
+#define DEFAULT_ADMIN_TOKEN "admin"
+
 typedef struct{
     char username[MAX_FIELD_SIZE];
     char password[MAX_FIELD_SIZE];
@@ -34,5 +39,11 @@ int getUserByUsername(char * username);
 
 // Libera toda la memoria utilizada por Users
 void destroyUsers();
+
+// Valida el token ingresado con el del administrador
+int validateAdminToken(char * token);
+
+// Cambia el token del administrador
+int changeAdminToken(char * oldToken, char * newToken);
 
 #endif

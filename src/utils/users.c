@@ -7,6 +7,8 @@ static TUser * users;
 static int count;
 static int INITIALIZED = 0;
 
+static char adminToken[MAX_FIELD_SIZE];
+
 // Inicializa la estructura de usuarios
 void initUsers(){
     if(INITIALIZED)
@@ -16,6 +18,7 @@ void initUsers(){
 
     users = malloc(sizeof(TUser) * MAX_USERS);
     count = 0;
+    strncpy(adminToken, DEFAULT_ADMIN_TOKEN, MAX_FIELD_SIZE);
 }
 
 // Agrega un usuario a la estructura
@@ -59,6 +62,30 @@ int validateUserCredentials(char * username, char * password){
             return VALID_CREDENTIALS;
 
     return INVALID_CREDENTIALS;
+}
+
+// Valida el token ingresado con el del administrador
+int validateAdminToken(char * token){
+    if(token == NULL)
+        return INVALID_CREDENTIALS;
+
+    if(strcmp(adminToken, token) == 0)
+        return VALID_CREDENTIALS;
+
+    return INVALID_CREDENTIALS;
+}
+
+// Cambia el token del administrador
+int changeAdminToken(char * oldToken, char * newToken){
+    if(oldToken == NULL || newToken == NULL)
+        return TOKEN_UPDATE_FAILED;
+    
+    if(strcmp(adminToken, oldToken) == 0){
+        strncpy(adminToken, newToken, MAX_FIELD_SIZE);
+        return TOKEN_UPDATED_SUCCESSFULLY;
+
+    }
+    return TOKEN_UPDATE_FAILED;
 }
 
 // Libera toda la memoria utilizada por Users
