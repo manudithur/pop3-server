@@ -18,7 +18,7 @@ unsigned user_handler(selector_key *key){
 }
 
 unsigned pass_handler(selector_key *key){
-      client_data * data = ATTACHMENT(key);
+    client_data * data = ATTACHMENT(key);
     char buf[] = {"+OK PASS\r\n"};
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
@@ -75,13 +75,16 @@ unsigned list_handler(selector_key *key){
     long long int totalSize = 0;
     int count = 0;
     const char *path = "src/mail_test";
-    char resultBuffer[256];
+
+    //Decision de diseño: buffer de 5000 caracteres
+    char resultBuffer[BUFFER_LEN];
 
     directory = opendir(path);
     if (directory == NULL) {
         printf("ERROR - unable to open mailbox\n");
         return ERROR_STATE;
     }
+
     snprintf(resultBuffer, sizeof(resultBuffer), "+OK LIST\n");
     while ((entry = readdir(directory)) != NULL) {
         char filePath[PATH_MAX];
@@ -90,8 +93,7 @@ unsigned list_handler(selector_key *key){
             if (S_ISREG(fileStat.st_mode)) {
                 //printf("File %d size: %lld\n", count, fileStat.st_size);
                 count++;
-                 snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer),
-                         "%d %lld\n", count, fileStat.st_size);
+                snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer), "%d %lld\n", count, fileStat.st_size);
             }
         }
     }
