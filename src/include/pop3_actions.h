@@ -20,5 +20,14 @@ unsigned noop_handler(selector_key *key);
 unsigned quit_handler(selector_key *key);
 unsigned capa_handler(selector_key *key);
 
+
+void close_mail_handler(selector_key * key);
+
+void write_mail_handler(selector_key * key);
+
+void block_mail_handler(selector_key * key);
+
+void read_mail_handler(selector_key * key);
+
 #endif
 

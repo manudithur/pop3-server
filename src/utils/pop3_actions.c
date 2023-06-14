@@ -110,10 +110,6 @@ unsigned list_handler(selector_key *key){
     return data->stm.current->state;
 }
 
-void read_mail_handler(selector_key * key){
-
-    
-}
 void close_mail_handler(selector_key * key){
 }
 
@@ -123,53 +119,108 @@ void write_mail_handler(selector_key * key){
 void block_mail_handler(selector_key * key){
 }
 
-fd_handler handler ={
+fd_handler mail_handler ={
     .handle_read = read_mail_handler,
     .handle_close = close_mail_handler,
-    .handle_write = write_mail_handler,
+    .handle_write = NULL, //Vamos a probar null primero y que use el otro
     .handle_block = block_mail_handler
+};
 
+typedef struct email{
+    int email_fd;
+    int parent_fd;
+    struct buffer bStruct;
+    uint8_t buffer[BUFFER_LEN];
+    struct buffer * pStruct; //acceso al buffer del padre
+}email;
+
+void read_mail_handler(struct selector_key *key){
+
+    email * email_data = ((email *)(key)->data);
+    buffer * mail_buffer = &email_data->bStruct;
+    
+    size_t readLimit;
+    ssize_t readCount;    
+    uint8_t * readBuffer;
+    readBuffer = buffer_write_ptr(mail_buffer, &readLimit);
+    readCount = recv(key->fd, readBuffer, readLimit, 0);
+
+    if (readCount <= 0){
+    //    return -1;
+        return;
+    }
+
+    buffer_write_adv(&email_data->bStruct, readCount);
+
+    //deberia preguntar si el otro puede escribir tambien?
+    while(buffer_can_read(mail_buffer)){
+        uint8_t * readBuffer;
+        size_t readLimit;
+        readBuffer = buffer_read_ptr(mail_buffer, &readLimit);
+        buffer_write(email_data->pStruct, *readBuffer); //escribo lo que lei en el buffer del padre
+    }
+
+    //SOLO SI TERMINE DE ESCRIBIR EL MAIL, O SI NO HAY MAS LUGAR EN EL BUFFER DEL PADRE
+    //selector_set_interest_key(key, OP_NOOP);
+    selector_set_interest(key->s, email_data->parent_fd, OP_WRITE);
+
+   // return TRANSACTION_STATE;
 }
 
 
+unsigned retr_handler(selector_key *key){
+    //primero deberia fijarme si estan bien los argumentos, si existe el mail etc.
 
-unsigned retr_handler(selector_key *key){// por decision de diseño los mails solo pueden tener 5000 caracteres, y solo leer el mail hardcodeado
-    
     client_data * data = ATTACHMENT(key);
-    uint8_t buf[BUFFER_LEN];
-    buffer  mailBuffer;
-    buffer_init(&mailBuffer,BUFFER_LEN,buf);
-    printf("start\n");
-    char filePath[PATH_MAX] = "src/mail_test/mail1";
-    char c;
-    FILE* file = fopen(filePath, "r");
-    if (file == NULL) {
-        fprintf(stderr, "Unable to open file: %s\n", filePath);
-        return ERROR_STATE;
-    }
-    while((c = fgetc(file) )!= EOF){
-        if (buffer_can_write(&mailBuffer)){
+
+    printf("retr handler\n");
+
+    email * email_data = malloc(sizeof(email));
+    email_data->email_fd = open("src/mail_test/mail1", O_RDONLY);
+    email_data->parent_fd = data->fd;
+    buffer_init(&email_data->bStruct, BUFFER_LEN, email_data->buffer);
+
+    
+    selector_register(key->s, email_data->email_fd, &mail_handler, OP_READ, email_data);
+
+    //como llamo al read_mail_handler?? => calculo que se llama solo porque el fd va a estar llenisimo por el mail
+    return data->stm.current->state;
+
+
+    //uint8_t buf[BUFFER_LEN];
+    //buffer  mailBuffer;
+    //buffer_init(&mailBuffer,BUFFER_LEN,buf);
+    // printf("start\n");
+    // char filePath[PATH_MAX] = "src/mail_test/mail1";
+    // char c;
+    // FILE* file = fopen(filePath, "r");
+    // if (file == NULL) {
+    //     fprintf(stderr, "Unable to open file: %s\n", filePath);
+    //     return ERROR_STATE;
+    // }
+    // while((c = fgetc(file) )!= EOF){
+    //     if (buffer_can_write(&mailBuffer)){
             
-            buffer_write(&mailBuffer,c);
-        }
-        else{
-            while(buffer_can_read(&mailBuffer)){
-                if (buffer_can_write(&data->wbStruct)){
-                    buffer_write(&data->wbStruct,buffer_read(&mailBuffer));
-                }
-            }
-        }
-    }
-    while(buffer_can_read(&mailBuffer)){
-        if (buffer_can_write(&data->wbStruct)){
-            buffer_write(&data->wbStruct,buffer_read(&mailBuffer));
-        }
-    }
-    buffer_reset(&mailBuffer);
+    //         buffer_write(&mailBuffer,c);
+    //     }
+    //     else{
+    //         while(buffer_can_read(&mailBuffer)){
+    //             if (buffer_can_write(&data->wbStruct)){
+    //                 buffer_write(&data->wbStruct,buffer_read(&mailBuffer));
+    //             }
+    //         }
+    //     }
+    // }
+    // while(buffer_can_read(&mailBuffer)){
+    //     if (buffer_can_write(&data->wbStruct)){
+    //         buffer_write(&data->wbStruct,buffer_read(&mailBuffer));
+    //     }
+    // }
+    // buffer_reset(&mailBuffer);
     
 
-    fclose(file);
-    return data->stm.current->state;
+    // fclose(file);
+    // return data->stm.current->state;
 }
 
 
