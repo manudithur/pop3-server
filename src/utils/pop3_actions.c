@@ -205,41 +205,6 @@ unsigned retr_handler(selector_key *key){
     //como llamo al read_mail_handler?? => calculo que se llama solo porque el fd va a estar llenisimo por el mail
     return data->stm.current->state;
 
-
-    //uint8_t buf[BUFFER_LEN];
-    //buffer  mailBuffer;
-    //buffer_init(&mailBuffer,BUFFER_LEN,buf);
-    // printf("start\n");
-    // char filePath[PATH_MAX] = "src/mail_test/mail1";
-    // char c;
-    // FILE* file = fopen(filePath, "r");
-    // if (file == NULL) {
-    //     fprintf(stderr, "Unable to open file: %s\n", filePath);
-    //     return ERROR_STATE;
-    // }
-    // while((c = fgetc(file) )!= EOF){
-    //     if (buffer_can_write(&mailBuffer)){
-            
-    //         buffer_write(&mailBuffer,c);
-    //     }
-    //     else{
-    //         while(buffer_can_read(&mailBuffer)){
-    //             if (buffer_can_write(&data->wbStruct)){
-    //                 buffer_write(&data->wbStruct,buffer_read(&mailBuffer));
-    //             }
-    //         }
-    //     }
-    // }
-    // while(buffer_can_read(&mailBuffer)){
-    //     if (buffer_can_write(&data->wbStruct)){
-    //         buffer_write(&data->wbStruct,buffer_read(&mailBuffer));
-    //     }
-    // }
-    // buffer_reset(&mailBuffer);
-    
-
-    // fclose(file);
-    // return data->stm.current->state;
 }
 
 
