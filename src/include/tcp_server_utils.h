@@ -36,6 +36,8 @@ typedef struct command_data{
 
 typedef struct client_data{
     char * username;
+    bool * emailDeleted;
+    int emailCount;
     struct buffer rbStruct;
     struct buffer wbStruct;
     uint8_t rb[BUFFER_LEN];

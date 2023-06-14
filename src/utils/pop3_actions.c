@@ -6,16 +6,41 @@
 unsigned user_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
     char buf[] = {"+OK USER\r\n"};
-    if (validateUser(data->command.arg1) != VALID_CREDENTIALS || data->username != NULL || data->command.arg2[0] != '\0'){
+    if (validateUser(data->command.arg1) != VALID_CREDENTIALS || data->command.arg2[0] != '\0'){
         return ERROR_STATE;
     }
-    data->username=malloc(strlen((data->command.arg1))+1);
-    strcpy(data->username,data->command.arg1);
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,buf[i]);
         }
     }
+    data->username=malloc(strlen((data->command.arg1))+1);
+    strcpy(data->username,data->command.arg1);
+
+    int emailCount = 0;
+    DIR *dir;
+    struct dirent *entry;
+
+    char * directoryPath = strcat("src/mail_test/", data->username);
+    directoryPath = strcat(directoryPath, "/cur");
+
+    dir = opendir(directoryPath);
+//    if (dir == NULL) {
+//        return ERROR_STATE; //TODO: que se cree la carpeta del usuario si el usuario no tiene una carpeta
+//    }
+
+    while ((entry = readdir(dir)) != NULL) {
+        if (entry->d_type == DT_REG) {  // Regular file
+            emailCount++;
+        }
+    }
+
+    closedir(dir);
+
+    data->emailDeleted = calloc(1,sizeof(bool) * emailCount);  //inicializa todos los mails como no borrados
+    data->emailCount = emailCount;
+    printf("%s\n",data->command.arg1 );
+
     return AUTH_STATE;
 }
 
@@ -289,35 +314,36 @@ unsigned dele_handler(selector_key *key){
     }
     int n = atoi(data->command.arg1) -1;
 
+    data->emailDeleted[n] = true;
 
-    char * sourceDir = "src/mail_test";
-    char * destinationDir = "src/mail_test/trash";
+//    char * sourceDir = "src/mail_test";
+//    char * destinationDir = "src/mail_test/trash";
+//
+//    dir = opendir(sourceDir);
+//    if (dir == NULL) {
+//        return ERROR_STATE;
+//    }
+//
+//    while ((entry = readdir(dir)) != NULL) {
+//        if (entry->d_type == DT_REG) { // Only consider regular files
+//            count++;
+//            if (count == n) {
+//                char sourcePath[256];
+//                char destinationPath[256];
+//
+//                sprintf(sourcePath, "%s/%s", sourceDir, entry->d_name);
+//                sprintf(destinationPath, "%s/%s", destinationDir, entry->d_name);
+//
+//                rename(sourcePath, destinationPath);
+//            }
+//        }
+//    }
+//
+//    closedir(dir);
 
-    dir = opendir(sourceDir);
-    if (dir == NULL) {
-        return ERROR_STATE;
-    }
-
-    while ((entry = readdir(dir)) != NULL) {
-        if (entry->d_type == DT_REG) { // Only consider regular files
-            count++;
-            if (count == n) {
-                char sourcePath[256];
-                char destinationPath[256];
-
-                sprintf(sourcePath, "%s/%s", sourceDir, entry->d_name);
-                sprintf(destinationPath, "%s/%s", destinationDir, entry->d_name);
-
-                rename(sourcePath, destinationPath);
-            }
-        }
-    }
-
-    closedir(dir);
-
-    if (count < n){
-        return ERROR_STATE;
-    }
+//    if (count < n){
+//        return ERROR_STATE;
+//    }
 
     return TRANSACTION_STATE;
 }
@@ -332,32 +358,10 @@ unsigned rset_handler(selector_key *key){
             buffer_write(&data->wbStruct,buf[i]);
         }
     }
-    DIR* directory;
-    struct dirent* file;
 
-    char * srcDir = "src/mail/trash"; //TODO: poner paths de mail y trash
-    char * destDir = "src/mail";
-
-    directory = opendir(srcDir);
-
-    // Iterate over files in the source directory
-    while ((file = readdir(directory)) != NULL) {
-        // Ignore "." and ".." entries
-        if (strcmp(file->d_name, ".") == 0 || strcmp(file->d_name, "..") == 0) {
-            continue;
-        }
-        char srcPath[256];
-        char destPath[256];
-        snprintf(srcPath, sizeof(srcPath), "%s/%s", srcDir, file->d_name);
-        snprintf(destPath, sizeof(destPath), "%s/%s", destDir, file->d_name);
-
-        // Move the file
-        if (rename(srcPath, destPath) != 0) {
-            printf("Failed to move file: %s\n", srcPath);
-        }
+    for (int i = 0; i < data->emailCount; i++){
+        data->emailDeleted[i] = false;
     }
-
-    closedir(directory);
 
     return TRANSACTION_STATE;
 }
@@ -383,13 +387,15 @@ unsigned quit_handler(selector_key *key){
         }
     }
 
-    const char* directory_path = "src/mail/trash"; // TODO:Poner el path del trash
+    char * directory_path = strcat("src/mail_test/", data->username);
+    directory_path = strcat(directory_path, "/cur");
 
     DIR* directory = opendir(directory_path);
     struct dirent* file;
+    int emailIndex = 0;
 
     while ((file = readdir(directory)) != NULL) {
-        if (strcmp(file->d_name, ".") != 0 && strcmp(file->d_name, "..") != 0) {
+        if (strcmp(file->d_name, ".") != 0 && strcmp(file->d_name, "..") != 0 && data->emailDeleted[emailIndex++] == true) {
             char file_path[100];
             snprintf(file_path, sizeof(file_path), "%s/%s", directory_path, file->d_name);
             remove(file_path);
