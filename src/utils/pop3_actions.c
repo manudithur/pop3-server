@@ -332,8 +332,6 @@ unsigned rset_handler(selector_key *key){
             buffer_write(&data->wbStruct,buf[i]);
         }
     }
-    data->username = NULL;  //Devuelvo al usuario al momento 0 de la aplicacion. No puso su usuario y esta en authorization state.
-
     DIR* directory;
     struct dirent* file;
 
@@ -361,7 +359,7 @@ unsigned rset_handler(selector_key *key){
 
     closedir(directory);
 
-    return AUTH_STATE;
+    return TRANSACTION_STATE;
 }
 
 unsigned noop_handler(selector_key *key){
