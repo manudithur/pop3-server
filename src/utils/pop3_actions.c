@@ -1,7 +1,7 @@
 #include "pop3_actions.h"
 
 
-#define PATH_MAX 300
+#define PATH_MAX_LENGTH 300
 
 unsigned user_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
@@ -26,8 +26,6 @@ unsigned pass_handler(selector_key *key){
         }
     }
     return TRANSACTION_STATE;
-
-
 }
 
 unsigned stat_handler(selector_key *key){
@@ -46,8 +44,8 @@ unsigned stat_handler(selector_key *key){
         return ERROR_STATE;
     }
     while ((entry = readdir(directory)) != NULL) {
-        char filePath[PATH_MAX];
-        snprintf(filePath, PATH_MAX, "%s/%s", path, entry->d_name);
+        char filePath[PATH_MAX_LENGTH];
+        snprintf(filePath, PATH_MAX_LENGTH, "%s/%s", path, entry->d_name);
         if (stat(filePath, &fileStat) == 0) {
         if (S_ISREG(fileStat.st_mode)) {
             count++;
@@ -87,8 +85,8 @@ unsigned list_handler(selector_key *key){
 
     snprintf(resultBuffer, sizeof(resultBuffer), "+OK LIST\n");
     while ((entry = readdir(directory)) != NULL) {
-        char filePath[PATH_MAX];
-        snprintf(filePath, PATH_MAX, "%s/%s", path, entry->d_name);
+        char filePath[PATH_MAX_LENGTH];
+        snprintf(filePath, PATH_MAX_LENGTH, "%s/%s", path, entry->d_name);
         if (stat(filePath, &fileStat) == 0) {
             if (S_ISREG(fileStat.st_mode)) {
                 //printf("File %d size: %lld\n", count, fileStat.st_size);
@@ -156,7 +154,6 @@ void read_mail_handler(struct selector_key *key){
         readBuffer=buffer_read_ptr(mail_buffer, &readLimit);
         buffer_write(email_data->pStruct, *readBuffer); //escribo lo que lei en el buffer del padre
         buffer_read_adv(mail_buffer, 1);
-        printf("LEI: %c\n", *readBuffer);
     }
     buffer_write(email_data->pStruct, '\r');
     buffer_write(email_data->pStruct, '\n');
@@ -175,7 +172,42 @@ unsigned retr_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
     struct stat fileStat;
     long long int totalSize = 0;
-    char * filePath= "src/mail_test/mail1";
+    char dirPath[PATH_MAX];
+    snprintf(dirPath, PATH_MAX, "src/mail_test/");
+    snprintf(dirPath + strlen(dirPath), PATH_MAX, "%s/", data->username);
+    snprintf(dirPath + strlen(dirPath), PATH_MAX, "cur/");
+    int targetFileIndex = atoi(data->command.arg1) -1;
+    DIR *dir = opendir(dirPath);
+    if (dir == NULL) {
+        printf("Failed to open directory '%s'\n", dirPath);
+        return 1;
+    }
+     struct dirent *entry;
+    int fileCount = 0;
+    char filePath[PATH_MAX];
+    while ((entry = readdir(dir)) != NULL) {
+        // Ignore "." and ".." directories
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+            continue;
+
+        if (fileCount == targetFileIndex) {
+            // Found the desired file
+            
+            snprintf(filePath, PATH_MAX, "%s%s", dirPath, entry->d_name);
+            printf("File path: %s\n", filePath);
+            break;
+        }
+
+        fileCount++;
+    }
+    // if (fileCount <= targetFileIndex) { TODO: NO FUNCIONA ESTE CHECKEO
+    //     printf("The directory '%s' does not have a file at index %d\n", dirPath, targetFileIndex);
+    //     return ERROR_STATE;
+    // }
+ 
+    
+
+    closedir(dir);
     //printf("retr handler\n");
     size_t writeLimit;
     email * email_data = malloc(sizeof(email));
@@ -212,7 +244,48 @@ unsigned retr_handler(selector_key *key){
 
 
 unsigned dele_handler(selector_key *key){
+    client_data * data = ATTACHMENT(key);
+    char buf[] = {"+OK MESSAGE DELETED\r\n"};
+    for (int i = 0; buf[i] != '\0'; i++){
+        if (buffer_can_write(&data->wbStruct)){
+            buffer_write(&data->wbStruct,buf[i]);
+        }
+    }
+    DIR *dir;
+    struct dirent *entry;
+    int count = 0;
+    int n = 1; // numero del mail que se debe eliminar
 
+    char * sourceDir = "src/mail_test";
+    char * destinationDir = "src/mail_test/trash";
+
+    dir = opendir(sourceDir);
+    if (dir == NULL) {
+        return ERROR_STATE;
+    }
+
+    while ((entry = readdir(dir)) != NULL) {
+        if (entry->d_type == DT_REG) { // Only consider regular files
+            count++;
+            if (count == n) {
+                char sourcePath[256];
+                char destinationPath[256];
+
+                sprintf(sourcePath, "%s/%s", sourceDir, entry->d_name);
+                sprintf(destinationPath, "%s/%s", destinationDir, entry->d_name);
+
+                rename(sourcePath, destinationPath);
+            }
+        }
+    }
+
+    closedir(dir);
+
+    if (count < n){
+        return ERROR_STATE;
+    }
+
+    return TRANSACTION_STATE;
 }
 
 unsigned rset_handler(selector_key *key){
