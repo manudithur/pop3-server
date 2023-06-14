@@ -31,6 +31,9 @@ void initUsers();
 // Agrega un usuario a la estructura
 int addUser(char * username, char * password);
 
+// Valida que el nombre de usuario exista
+int validateUser(char * username);
+
 // Busca un usuario en la estructura
 int validateUserCredentials(char * username, char * password);
 

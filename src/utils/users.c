@@ -52,6 +52,20 @@ int getUserByUsername(char * username){
     return USER_NOT_FOUND;
 }
 
+int validateUser(char * username){
+    if(username == NULL){
+        return INVALID_CREDENTIALS;
+    }
+
+    for(int i = 0 ; i < count; i ++){
+        if(strcmp(users[i].username, username) == 0 ){
+            return VALID_CREDENTIALS;
+        }
+    }
+
+    return INVALID_CREDENTIALS;
+}
+
 // Busca un usuario en la estructura
 int validateUserCredentials(char * username, char * password){
     if(username == NULL || password == NULL)
