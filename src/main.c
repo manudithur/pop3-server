@@ -12,6 +12,7 @@
 #include "logger.h"
 #include "tcp_server_utils.h"
 #include "selector.h"
+#include "users.h"
 
 #define TRUE   1
 #define FALSE  0
@@ -73,6 +74,12 @@ int main(int argc , char *argv[]){
         .handle_block = NULL,
         .handle_close = NULL
     };
+
+    initUsers();
+    addUser("tperry", "1234");
+    addUser("tgaybare", "1234");
+    addUser("mdithurbide", "1234");
+    addUser("mhecht", "1234");
 
     ss = selector_register(selector, serverSocket, &socket_handler, OP_READ, NULL);
 
