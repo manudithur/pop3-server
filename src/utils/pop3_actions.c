@@ -154,7 +154,6 @@ void read_mail_handler(struct selector_key *key){
         readBuffer=buffer_read_ptr(mail_buffer, &readLimit);
         buffer_write(email_data->pStruct, *readBuffer); //escribo lo que lei en el buffer del padre
         buffer_read_adv(mail_buffer, 1);
-        printf("LEI: %c\n", *readBuffer);
     }
     buffer_write(email_data->pStruct, '\r');
     buffer_write(email_data->pStruct, '\n');
@@ -173,7 +172,42 @@ unsigned retr_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
     struct stat fileStat;
     long long int totalSize = 0;
-    char * filePath= "src/mail_test/mail1";
+    char dirPath[PATH_MAX];
+    snprintf(dirPath, PATH_MAX, "src/mail_test/");
+    snprintf(dirPath + strlen(dirPath), PATH_MAX, "%s/", data->username);
+    snprintf(dirPath + strlen(dirPath), PATH_MAX, "cur/");
+    int targetFileIndex = atoi(data->command.arg1) -1;
+    DIR *dir = opendir(dirPath);
+    if (dir == NULL) {
+        printf("Failed to open directory '%s'\n", dirPath);
+        return 1;
+    }
+     struct dirent *entry;
+    int fileCount = 0;
+    char filePath[PATH_MAX];
+    while ((entry = readdir(dir)) != NULL) {
+        // Ignore "." and ".." directories
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+            continue;
+
+        if (fileCount == targetFileIndex) {
+            // Found the desired file
+            
+            snprintf(filePath, PATH_MAX, "%s%s", dirPath, entry->d_name);
+            printf("File path: %s\n", filePath);
+            break;
+        }
+
+        fileCount++;
+    }
+    // if (fileCount <= targetFileIndex) { TODO: NO FUNCIONA ESTE CHECKEO
+    //     printf("The directory '%s' does not have a file at index %d\n", dirPath, targetFileIndex);
+    //     return ERROR_STATE;
+    // }
+ 
+    
+
+    closedir(dir);
     //printf("retr handler\n");
     size_t writeLimit;
     email * email_data = malloc(sizeof(email));
