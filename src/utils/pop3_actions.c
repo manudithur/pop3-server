@@ -91,7 +91,7 @@ unsigned list_handler(selector_key *key){
         snprintf(filePath, PATH_MAX, "%s/%s", path, entry->d_name);
         if (stat(filePath, &fileStat) == 0) {
             if (S_ISREG(fileStat.st_mode)) {
-                printf("File %d size: %lld\n", count, fileStat.st_size);
+                //printf("File %d size: %lld\n", count, fileStat.st_size);
                 count++;
                  snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer),
                          "%d %lld\n", count, fileStat.st_size);
@@ -110,11 +110,66 @@ unsigned list_handler(selector_key *key){
     return data->stm.current->state;
 }
 
-unsigned retr_handler(selector_key *key){
-    client_data * data = ATTACHMENT(key);
+void read_mail_handler(selector_key * key){
+
     
+}
+void close_mail_handler(selector_key * key){
+}
+
+void write_mail_handler(selector_key * key){
+}
+
+void block_mail_handler(selector_key * key){
+}
+
+fd_handler handler ={
+    .handle_read = read_mail_handler,
+    .handle_close = close_mail_handler,
+    .handle_write = write_mail_handler,
+    .handle_block = block_mail_handler
+
+}
+
+
+
+unsigned retr_handler(selector_key *key){// por decision de diseño los mails solo pueden tener 5000 caracteres, y solo leer el mail hardcodeado
+    
+    client_data * data = ATTACHMENT(key);
+    uint8_t buf[BUFFER_LEN];
+    buffer  mailBuffer;
+    buffer_init(&mailBuffer,BUFFER_LEN,buf);
+    printf("start\n");
+    char filePath[PATH_MAX] = "src/mail_test/mail1";
+    char c;
+    FILE* file = fopen(filePath, "r");
+    if (file == NULL) {
+        fprintf(stderr, "Unable to open file: %s\n", filePath);
+        return ERROR_STATE;
+    }
+    while((c = fgetc(file) )!= EOF){
+        if (buffer_can_write(&mailBuffer)){
+            
+            buffer_write(&mailBuffer,c);
+        }
+        else{
+            while(buffer_can_read(&mailBuffer)){
+                if (buffer_can_write(&data->wbStruct)){
+                    buffer_write(&data->wbStruct,buffer_read(&mailBuffer));
+                }
+            }
+        }
+    }
+    while(buffer_can_read(&mailBuffer)){
+        if (buffer_can_write(&data->wbStruct)){
+            buffer_write(&data->wbStruct,buffer_read(&mailBuffer));
+        }
+    }
+    buffer_reset(&mailBuffer);
     
 
+    fclose(file);
+    return data->stm.current->state;
 }
 
 

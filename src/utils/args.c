@@ -39,8 +39,8 @@ user(char *s, struct users *user) {
 
 static void
 version(void) {
-    fprintf(stderr, "socks5v version 0.0\n"
-                    "ITBA Protocolos de Comunicación 2020/1 -- Grupo X\n"
+    fprintf(stderr, "POP3 version 1.4.2\n"
+                    "ITBA Protocolos de Comunicación 2023/1 -- Grupo 8\n"
                     "AQUI VA LA LICENCIA\n");
 }
 
