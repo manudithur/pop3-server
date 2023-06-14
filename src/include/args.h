@@ -5,7 +5,7 @@
 
 #define MAX_USERS 10
 
-struct users {
+struct credentials {
     char *name;
     char *pass;
 };
@@ -28,7 +28,7 @@ struct socks5args {
     bool            disectors_enabled;
 
     struct doh      doh;
-    struct users    users[MAX_USERS];
+    struct credentials    users[MAX_USERS];
 };
 
 /**
@@ -38,6 +38,9 @@ struct socks5args {
  */
 void 
 parse_args(const int argc, char **argv, struct socks5args *args);
+
+void
+parseAndAddUsers(const int argc, char ** argv);
 
 #endif
 

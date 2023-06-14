@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "../include/users.h"
-#include "../include/controller.h"
+#include "./include/controller.h"
 
 void commandDispatcher(int commandIndex, char argv[][MAX_COMMAND_LENGTH]) {
     printf("Command index: %d\n", commandIndex);
@@ -12,43 +12,44 @@ void commandDispatcher(int commandIndex, char argv[][MAX_COMMAND_LENGTH]) {
             help(argv);
             break;
         //make all the cases for the commands calling a function passing argv
-        case 1:
-            historicConnections(argv);
-            break;
-        case 2:
-            liveConnections(argv);
-            break;
-        case 3:
-            bytesTransferred(argv);
-            break;
-        case 4:
-            users(argv);
-            break;
-        case 5:
-            status(argv);
-            break;
-        case 6:
-            maxUsers(argv);
-            break;
-        case 7:
-            maxConnections(argv);
-            break;
-        case 8:
-            timeout(argv);
-            break;
-        case 9:
-            deleteUser(argv);
-            break;
-        case 10:
-            addUser(argv);
-            break;
-        case 11:
-            resetUserPassword(argv);
-            break;
-        case 12:
-            newToken(argv);
-            break;
+        // case 1:
+        //     historicConnections(argv);
+        //     break;
+        // case 2:
+        //     liveConnections(argv);
+        //     break;
+        // case 3:
+        //     bytesTransferred(argv);
+        //     break;
+        // case 4:
+        //     users(argv);
+        //     break;
+        // case 5:
+        //     status(argv);
+        //     break;
+        // case 6:
+        //     maxUsers(argv);
+        //     break;
+        // case 7:
+        //     maxConnections(argv);
+        //     break;
+        // case 8:
+        //     timeout(argv);
+        //     break;
+        // case 9:
+        //     deleteUser(argv);
+        //     break;
+        // case 10:
+        //     addUser(argv);
+        //     break;
+        // case 11:
+        //     resetUserPassword(argv);
+        //     break;
+        // case 12:
+        //     newToken(argv);
+        //     break;
         default:
+            printf("NOT IMPLEMENTED YET\n");
             break;
     }
 }
@@ -129,11 +130,6 @@ int main(int argc, char *argv[]) {
     if (command == NULL) {
         printf("Invalid number of arguments 2\n");
         invalidCommandResponse();
-        return 0;
-    }
-
-    if(validateAdminToken(command->token) == INVALID_CREDENTIALS){
-        printf("Invalid token\n");
         return 0;
     }
 

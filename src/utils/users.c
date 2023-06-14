@@ -33,8 +33,8 @@ int addUser(char * username, char * password){
     if(getUserByUsername(username) == USER_FOUND)
         return USER_ALREADY_EXISTS;
 
-    strncpy(users[count].username, username, MAX_FIELD_SIZE);
-    strncpy(users[count].password, password, MAX_FIELD_SIZE);
+    strncpy(users[count].username, username, strlen(username));
+    strncpy(users[count].password, password, strlen(password));
 
     count++;
     return USER_ADDED;
