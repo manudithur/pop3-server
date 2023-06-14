@@ -223,15 +223,18 @@ unsigned retr_handler(selector_key *key){
             
             snprintf(filePath, PATH_MAX, "%s%s", dirPath, entry->d_name);
             printf("File path: %s\n", filePath);
+            fileCount++;
             break;
         }
 
         fileCount++;
     }
-    // if (fileCount <= targetFileIndex) { TODO: NO FUNCIONA ESTE CHECKEO
-    //     printf("The directory '%s' does not have a file at index %d\n", dirPath, targetFileIndex);
-    //     return ERROR_STATE;
-    // }
+    printf("File count: %d\n", fileCount);
+    printf("%d",targetFileIndex);
+    if (fileCount <= targetFileIndex) { 
+        printf("The directory '%s' does not have a file at index %d\n", dirPath, targetFileIndex);
+        return ERROR_STATE;
+    }
  
     
 
@@ -255,7 +258,6 @@ unsigned retr_handler(selector_key *key){
             buffer_write(&data->wbStruct,aux[i]);
         }
     }
-    buffer_write_adv(&data->wbStruct, strlen(aux));
 
 
     data->emailptr = email_data;
