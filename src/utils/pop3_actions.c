@@ -6,6 +6,9 @@
 unsigned user_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
     char buf[] = {"+OK USER\r\n"};
+    if (validateUser(data->command.arg1) != VALID_CREDENTIALS || data->username != NULL || data->command.arg2[0] != '\0'){
+        return ERROR_STATE;
+    }
     data->username=malloc(strlen((data->command.arg1))+1);
     strcpy(data->username,data->command.arg1);
     for (int i = 0; buf[i] != '\0'; i++){
@@ -14,12 +17,14 @@ unsigned user_handler(selector_key *key){
         }
     }
     return AUTH_STATE;
-
 }
 
 unsigned pass_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
     char buf[] = {"+OK PASS\r\n"};
+    if (data->username == NULL || validateUserCredentials(data->username, data->command.arg1) != VALID_CREDENTIALS || data->command.arg2[0] != '\0'){
+        return ERROR_STATE;
+    }
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,buf[i]);
@@ -166,6 +171,26 @@ void read_mail_handler(struct selector_key *key){
    // return TRANSACTION_STATE;
 }
 
+bool isNumber(const char* str) {
+    if (str == NULL || *str == '\0') {
+        return false;
+    }
+
+
+    while (*str != '\0' && *str >= '0' && *str <= '9') {
+        ++str;
+    }
+
+
+    while (*str != '\0') {
+        if (*str != ' ') {
+            return false;
+        }
+        ++str;
+    }
+
+    return true;
+}
 
 unsigned retr_handler(selector_key *key){
     //TODO:primero deberia fijarme si estan bien los argumentos, si existe el mail etc.
@@ -176,6 +201,9 @@ unsigned retr_handler(selector_key *key){
     snprintf(dirPath, PATH_MAX, "src/mail_test/");
     snprintf(dirPath + strlen(dirPath), PATH_MAX, "%s/", data->username);
     snprintf(dirPath + strlen(dirPath), PATH_MAX, "cur/");
+    if (data->command.arg2[0] != '\0' || isNumber(data->command.arg1) == false){
+        return ERROR_STATE;
+    }
     int targetFileIndex = atoi(data->command.arg1) -1;
     DIR *dir = opendir(dirPath);
     if (dir == NULL) {
@@ -254,7 +282,11 @@ unsigned dele_handler(selector_key *key){
     DIR *dir;
     struct dirent *entry;
     int count = 0;
-    int n = 1; // numero del mail que se debe eliminar
+    if (data->command.arg2[0] != '\0' || isNumber(data->command.arg1) == false){
+        return ERROR_STATE;
+    }
+    int n = atoi(data->command.arg1) -1;
+
 
     char * sourceDir = "src/mail_test";
     char * destinationDir = "src/mail_test/trash";

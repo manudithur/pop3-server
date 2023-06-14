@@ -53,7 +53,7 @@ int getUserByUsername(char * username){
 }
 
 int validateUser(char * username){
-    if(username == NULL){
+    if(username[0] == '\0'){
         return INVALID_CREDENTIALS;
     }
 
@@ -68,7 +68,7 @@ int validateUser(char * username){
 
 // Busca un usuario en la estructura
 int validateUserCredentials(char * username, char * password){
-    if(username == NULL || password == NULL)
+    if(username[0] == '\0'|| password[0] == '\0')
         return INVALID_CREDENTIALS;
 
     for(int i = 0; i < count; i++)

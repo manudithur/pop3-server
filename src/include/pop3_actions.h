@@ -8,13 +8,13 @@
 #include "buffer.h"
 #include <dirent.h>
 #include <stdio.h>
-#include <dirent.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <stdlib.h>
+#include "users.h"
 #define BUFFER_LENGTH 10
 #define BUFFER 5000
 
@@ -37,7 +37,7 @@ unsigned noop_handler(selector_key *key);
 unsigned quit_handler(selector_key *key);
 unsigned capa_handler(selector_key *key);
 
-
+bool isNumber(const char* str);
 void close_mail_handler(selector_key * key);
 
 void write_mail_handler(selector_key * key);
