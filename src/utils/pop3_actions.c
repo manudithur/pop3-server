@@ -254,8 +254,7 @@ unsigned retr_handler(selector_key *key){
 
         fileCount++;
     }
-    printf("File count: %d\n", fileCount);
-    printf("%d",targetFileIndex);
+    stats_update(0,0,1);
     if (fileCount <= targetFileIndex) { 
         printf("The directory '%s' does not have a file at index %d\n", dirPath, targetFileIndex);
         return ERROR_STATE;
@@ -374,6 +373,7 @@ unsigned noop_handler(selector_key *key){
             buffer_write(&data->wbStruct,buf[i]);
         }
     }
+    stats_print();
     return data->stm.current->state;
 }
 

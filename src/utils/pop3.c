@@ -62,6 +62,7 @@ unsigned readHandler(struct selector_key * key) {
 
     readBuffer = buffer_write_ptr(&data->rbStruct, &readLimit);
     readCount = recv(key->fd, readBuffer, readLimit, 0);
+    stats_update(0,readCount,0);
 
     if (readCount <= 0) {
         return -1;
@@ -151,6 +152,7 @@ unsigned writeHandler(struct selector_key *key){
 
     writeBuffer = buffer_read_ptr(&data->wbStruct, &writeLimit);
     writeCount = send(data->fd, writeBuffer, writeLimit, MSG_NOSIGNAL);
+    stats_update(writeCount,0,0);
 
     if (writeCount <= 0) {
         printf("error en write\n");

@@ -15,6 +15,8 @@
 #include <sys/socket.h>
 #include <stdlib.h>
 #include "users.h"
+#include "stats.h"
+
 #define BUFFER_LENGTH 10
 #define BUFFER 5000
 
