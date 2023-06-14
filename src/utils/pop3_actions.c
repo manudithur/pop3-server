@@ -17,19 +17,23 @@ unsigned user_handler(selector_key *key){
     data->username=malloc(strlen((data->command.arg1))+1);
     strcpy(data->username,data->command.arg1);
 
-    int emailCount = 0;
+     int emailCount = 0;
     DIR *dir;
     struct dirent *entry;
 
-    char * directoryPath = strcat("src/mail_test/", data->username);
-    directoryPath = strcat(directoryPath, "/cur");
+    char dirPath[PATH_MAX_LENGTH];
+    snprintf(dirPath, PATH_MAX_LENGTH, "src/mail_test/");
+    snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "%s/", data->username);
+    snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "cur/");
 
-    dir = opendir(directoryPath);
+    dir = opendir(dirPath);
 //    if (dir == NULL) {
 //        return ERROR_STATE; //TODO: que se cree la carpeta del usuario si el usuario no tiene una carpeta
 //    }
 
     while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+            continue;
         if (entry->d_type == DT_REG) {  // Regular file
             emailCount++;
         }
@@ -300,6 +304,10 @@ unsigned retr_handler(selector_key *key){
 unsigned dele_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
     char buf[] = {"+OK MESSAGE DELETED\r\n"};
+    int n = atoi(data->command.arg1) -1;
+    if (data->command.arg2[0] != '\0' || isNumber(data->command.arg1) == false || n > data->emailCount - 1 || n < 0){
+        return ERROR_STATE;
+    }
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,buf[i]);
@@ -307,43 +315,7 @@ unsigned dele_handler(selector_key *key){
     }
     DIR *dir;
     struct dirent *entry;
-    int count = 0;
-    if (data->command.arg2[0] != '\0' || isNumber(data->command.arg1) == false){
-        return ERROR_STATE;
-    }
-    int n = atoi(data->command.arg1) -1;
-
     data->emailDeleted[n] = true;
-
-//    char * sourceDir = "src/mail_test";
-//    char * destinationDir = "src/mail_test/trash";
-//
-//    dir = opendir(sourceDir);
-//    if (dir == NULL) {
-//        return ERROR_STATE;
-//    }
-//
-//    while ((entry = readdir(dir)) != NULL) {
-//        if (entry->d_type == DT_REG) { // Only consider regular files
-//            count++;
-//            if (count == n) {
-//                char sourcePath[256];
-//                char destinationPath[256];
-//
-//                sprintf(sourcePath, "%s/%s", sourceDir, entry->d_name);
-//                sprintf(destinationPath, "%s/%s", destinationDir, entry->d_name);
-//
-//                rename(sourcePath, destinationPath);
-//            }
-//        }
-//    }
-//
-//    closedir(dir);
-
-//    if (count < n){
-//        return ERROR_STATE;
-//    }
-
     return TRANSACTION_STATE;
 }
 
@@ -387,17 +359,19 @@ unsigned quit_handler(selector_key *key){
         }
     }
 
-    char * directory_path = strcat("src/mail_test/", data->username);
-    directory_path = strcat(directory_path, "/cur");
+    char dirPath[PATH_MAX_LENGTH];
+    snprintf(dirPath, PATH_MAX_LENGTH, "src/mail_test/");
+    snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "%s/", data->username);
+    snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "cur/");
 
-    DIR* directory = opendir(directory_path);
+    DIR* directory = opendir(dirPath);
     struct dirent* file;
     int emailIndex = 0;
 
     while ((file = readdir(directory)) != NULL) {
         if (strcmp(file->d_name, ".") != 0 && strcmp(file->d_name, "..") != 0 && data->emailDeleted[emailIndex++] == true) {
             char file_path[100];
-            snprintf(file_path, sizeof(file_path), "%s/%s", directory_path, file->d_name);
+            snprintf(file_path, sizeof(file_path), "%s/%s", dirPath, file->d_name);
             remove(file_path);
         }
     }
