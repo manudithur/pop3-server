@@ -14,6 +14,7 @@
 #include "selector.h"
 #include "users.h"
 #include "args.h"
+#include "stats.h"
 
 #define TRUE   1
 #define FALSE  0
@@ -78,6 +79,8 @@ int main(int argc , char *argv[]){
 
     initUsers();
     parseAndAddUsers(argc-1, argv+1);
+
+    stats_init();
 
     ss = selector_register(selector, serverSocket, &socket_handler, OP_READ, NULL);
 

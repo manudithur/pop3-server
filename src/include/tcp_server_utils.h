@@ -18,6 +18,7 @@
 #include "pop3.h"
 #include "pop3_parser_impl.h"
 #include "pop3_actions.h"
+#include "stats.h"
 
 #define BUFFER_LEN 5000
 #define MAX_COMMAND_LEN 40

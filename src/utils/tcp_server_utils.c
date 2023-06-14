@@ -158,6 +158,7 @@ void handleNewConnection(struct selector_key * key){
 
 
 	// clntSock is connected to a client!
+	stats_add_connection();
 	printSocketAddress((struct sockaddr *) &clntAddr, addrBuffer);
 	log(INFO, "Handling client %s", addrBuffer);
 
