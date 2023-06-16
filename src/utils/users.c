@@ -53,16 +53,44 @@ int getUserByUsername(char * username){
     return USER_NOT_FOUND;
 }
 
+int validateAdminUser(char * username){
+    if(username[0] == '\0'){
+        return INVALID_CREDENTIALS;
+    }
+
+    for(int i = 0 ; i < count; i ++){
+        if(strcmp(users[i].username, username) == 0 && users[i].isAdmin == ADMIN_USER)
+            return VALID_CREDENTIALS;
+    }
+
+    return INVALID_CREDENTIALS;
+}
+
+int validateAdminCredentials(char * username, char * password){
+    if(username[0] == '\0'|| password[0] == '\0')
+        return INVALID_CREDENTIALS;
+
+    printf("VALIDATE ADMIN CREDENTIALS\n");
+    printf("username: %s\n", username);
+    printf("password: %s\n", password);
+
+    for(int i = 0; i < count; i++){
+        printf("Is admin: %s\n", users[i].isAdmin == ADMIN_USER ? "TRUE" : "FALSE");
+        if(strcmp(users[i].username, username) == 0 && strcmp(users[i].password, password) == 0 && users[i].isAdmin == ADMIN_USER)
+            return VALID_CREDENTIALS;
+    }
+
+    return INVALID_CREDENTIALS;
+}
+
 int validateUser(char * username){
     if(username[0] == '\0'){
         return INVALID_CREDENTIALS;
     }
 
     for(int i = 0 ; i < count; i ++){
-        if(strcmp(users[i].username, username) == 0 ){
-            printf("USER: %s\nROLE: %s", users[i].username, users[i].isAdmin == ADMIN_USER ? "ADMIN" : "STANDARD");
+        if(strcmp(users[i].username, username) == 0 )
             return VALID_CREDENTIALS;
-        }
     }
 
     return INVALID_CREDENTIALS;
