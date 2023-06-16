@@ -6,6 +6,42 @@
 #define MAX_ADDR_BUFFER 128
 
 static char addrBuffer[MAX_ADDR_BUFFER];
+
+static int setupSockAddr(char* addr, unsigned short port, void* res, socklen_t* socklenResult) {
+  int ipv6 = strchr(addr, ':') != NULL;
+
+  if (ipv6) {
+    // Parse addr as IPv6
+    struct sockaddr_in6 sock6;
+    memset(&sock6, 0, sizeof(sock6));
+
+    sock6.sin6_family = AF_INET6;
+    sock6.sin6_addr = in6addr_any;
+    sock6.sin6_port = htons(port);
+    if (inet_pton(AF_INET6, addr, &sock6.sin6_addr) != 1) {
+      return 1;
+    }
+
+    *((struct sockaddr_in6*)res) = sock6;
+    *socklenResult = sizeof(struct sockaddr_in6);
+    return 0;
+  }
+
+  // Parse addr as IPv4
+  struct sockaddr_in sock4;
+  memset(&sock4, 0, sizeof(sock4));
+  sock4.sin_family = AF_INET;
+  sock4.sin_addr.s_addr = INADDR_ANY;
+  sock4.sin_port = htons(port);
+  if (inet_pton(AF_INET, addr, &sock4.sin_addr) != 1) {
+    return 1;
+  }
+
+  *((struct sockaddr_in*)res) = sock4;
+  *socklenResult = sizeof(struct sockaddr_in);
+  return 0;
+}
+
 /*
  ** Se encarga de resolver el número de puerto para service (puede ser un string con el numero o el nombre del servicio)
  ** y crear el socket pasivo, para que escuche en cualquier IP, ya sea v4 o v6
@@ -34,7 +70,7 @@ int setupTCPServerSocket(const char *service) {
 	// Con esta implementación estaremos escuchando o bien en IPv4 o en IPv6, pero no en ambas
 	for (struct addrinfo *addr = servAddr; addr != NULL && servSock == -1; addr = addr->ai_next) {
 
-		errno = 0;
+		//errno = 0;
 
 		// Create a TCP socket
 		servSock = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);

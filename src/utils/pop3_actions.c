@@ -41,8 +41,9 @@ unsigned user_handler(selector_key *key){
 
     closedir(dir);
 
-    data->emailDeleted = calloc(1,sizeof(bool) * emailCount);  //inicializa todos los mails como no borrados
+    data->emailDeleted = calloc(1, sizeof(bool) * emailCount);  //inicializa todos los mails como no borrados
     data->emailCount = emailCount;
+    printf("el email count es: %d\n", emailCount);
     printf("%s\n",data->command.arg1 );
 
     return AUTH_STATE;
@@ -302,19 +303,29 @@ unsigned retr_handler(selector_key *key){
 
 
 unsigned dele_handler(selector_key *key){
+    printf("Print en el delete\n");
     client_data * data = ATTACHMENT(key);
     char buf[] = {"+OK MESSAGE DELETED\r\n"};
     int n = atoi(data->command.arg1) -1;
     if (data->command.arg2[0] != '\0' || isNumber(data->command.arg1) == false || n > data->emailCount - 1 || n < 0){
+        printf("el problema es en el arg2: %d\n", data->command.arg2[0] != '\0');
+        printf("el problema es en el numero: %d\n", isNumber(data->command.arg1)== false);
+        printf("el problema es en el email count: %d\n", n > data->emailCount - 1 );
+        printf("el problema es en el email count: %d\n",  n < 0);
+
+
+        printf("se rompe aca\n");
         return ERROR_STATE;
     }
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
+            printf("print de gayba");
             buffer_write(&data->wbStruct,buf[i]);
         }
     }
     DIR *dir;
     struct dirent *entry;
+    printf("%d", n );
     data->emailDeleted[n] = true;
     return TRANSACTION_STATE;
 }

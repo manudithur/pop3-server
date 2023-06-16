@@ -51,6 +51,8 @@ typedef struct client_data{
 }client_data;
 
 
+static int setupSockAddr(char* addr, unsigned short port, void* res, socklen_t* socklenResult);
+
 // Create, bind, and listen a new TCP server socket
 int setupTCPServerSocket(const char *service);
 
