@@ -36,7 +36,6 @@ static int setupSockAddr(char* addr, unsigned short port, void* res, socklen_t* 
   if (inet_pton(AF_INET, addr, &sock4.sin_addr) != 1) {
     return 1;
   }
-
   *((struct sockaddr_in*)res) = sock4;
   *socklenResult = sizeof(struct sockaddr_in);
   return 0;
@@ -49,61 +48,42 @@ static int setupSockAddr(char* addr, unsigned short port, void* res, socklen_t* 
 int setupTCPServerSocket(const char *service) {
 	
 	int opt = 1;
-	struct addrinfo addrCriteria;                   
-	memset(&addrCriteria, 0, sizeof(addrCriteria)); 
-	addrCriteria.ai_family = AF_UNSPEC;             
-	addrCriteria.ai_flags = AI_PASSIVE;             
-	addrCriteria.ai_socktype = SOCK_STREAM;         
-	addrCriteria.ai_protocol = IPPROTO_TCP;         
 
-	struct addrinfo *servAddr; 			// List of server addresses
-	int rtnVal = getaddrinfo("127.0.0.1", service, &addrCriteria, &servAddr);
-	if (rtnVal != 0) {
-		log(FATAL, "getaddrinfo() failed %s", gai_strerror(rtnVal));
-		return -1;
-	}
-
+        struct sockaddr_storage localAddr;
+        memset(&localAddr, 0, sizeof(localAddr));
+        socklen_t addrSize = sizeof(localAddr);
 	int servSock = -1;
 
-	// Intentamos ponernos a escuchar en alguno de los puertos asociados al servicio, sin especificar una IP en particular
-	// Iteramos y hacemos el bind por alguna de ellas, la primera que funcione, ya sea la general para IPv4 (0.0.0.0) o IPv6 (::/0) .
-	// Con esta implementación estaremos escuchando o bien en IPv4 o en IPv6, pero no en ambas
-	for (struct addrinfo *addr = servAddr; addr != NULL && servSock == -1; addr = addr->ai_next) {
+        //IPV6 y puerto hardcodeado
+        if(setupSockAddr("::FFFF:127.0.0.1", 5000, &localAddr, &addrSize )){
+          printf("problem 0\n");
+          return -1;
+        }
 
-		//errno = 0;
+        // Create a TCP socket
+        servSock = socket(localAddr.ss_family, SOCK_STREAM, IPPROTO_TCP);
+        if (servSock < 0) {
+          printf("problem 1\n");
+          return -1;
+        }
 
-		// Create a TCP socket
-		servSock = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
-		if (servSock < 0) {
-			log(DEBUG, "Cant't create socket on %s : %s ", printAddressPort(addr, addrBuffer), strerror(errno));  
-			continue;
-		}
 
-		//TODO: IPv4 e IPv6 setteando algunas cosas en esta line
-		// para que IPv6 acepte ambos (dual stack socket)
-		// int on = 0;
-		// setsockopt(socketIpV6, IPPROTO_IPV6, IPV6_V6ONLY, (const void *)&on, sizeof(on));
-		if( setsockopt(servSock, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0 ){
-			//log(ERROR, "set server socket options failed");
-		}
+        if( setsockopt(servSock, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0 );
 
-		// Bind to ALL the address and set socket to listen
-		if ((bind(servSock, addr->ai_addr, addr->ai_addrlen) == 0) && (listen(servSock, MAXPENDING) == 0)) {
-			// Print local address of socket
-			struct sockaddr_storage localAddr;
-			socklen_t addrSize = sizeof(localAddr);
-			if (getsockname(servSock, (struct sockaddr *) &localAddr, &addrSize) >= 0) {
-				printSocketAddress((struct sockaddr *) &localAddr, addrBuffer);
-				log(INFO, "Binding to %s", addrBuffer);
-			}
-		} else {
-			log(DEBUG, "Cant't bind %s", strerror(errno));  
-			close(servSock);
-			servSock = -1;
-		}
-	}
+        // Bind to ALL the address and set socket to listen
+        if (bind(servSock, (struct sockaddr *)&localAddr, addrSize) == 0) {
 
-	freeaddrinfo(servAddr);
+          if(listen(servSock, MAXPENDING) <0){
+            printf("problem 3\n");
+          }
+
+        } else {
+          printf("problem 2\n");
+          close(servSock);
+          servSock = -1;
+        }
+
+	//freeaddrinfo(servAddr);
 
 	return servSock;
 }

@@ -59,16 +59,12 @@ int main(int argc , char *argv[]){
         exit(1);
     }
 
-    //habilitar logging aca
 
-
-	int serverSocket = setupTCPServerSocket(POP3_PORT);
+    int serverSocket = setupTCPServerSocket(POP3_PORT);
 
     signal(SIGTERM, sigterm_handler);
     signal(SIGINT, sigterm_handler);
 
-    //registrar socket pasivo
-    //pasarle los puntros a funcion para armar los handlers
 
     fd_handler socket_handler = {
         .handle_read = handleNewConnection,
