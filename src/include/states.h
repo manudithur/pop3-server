@@ -8,6 +8,12 @@ enum pop3_states{
     ERROR_STATE
 };
 
+enum mgmt_states{
+    AUTH_MGMT =0,
+    ACTIVE_MGMT,
+    ERROR_MGMT
+};
+
 
 
 #endif

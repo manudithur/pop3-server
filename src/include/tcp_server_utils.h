@@ -50,13 +50,30 @@ typedef struct client_data{
     struct email * emailptr;
 }client_data;
 
+typedef struct mgmt_data{
+    char * username;
+    bool * emailDeleted;
+    int emailCount;
+    struct buffer rbStruct;
+    struct buffer wbStruct;
+    uint8_t rb[BUFFER_LEN];
+    uint8_t wb[BUFFER_LEN];
+    struct state_machine stm;
+    int fd;
+    struct parser * parser;
+    struct command_data command;
+    struct email * emailptr;
+}mgmt_data;
+
 
 static int setupSockAddr(char* addr, unsigned short port, void* res, socklen_t* socklenResult);
 
 // Create, bind, and listen a new TCP server socket
-int setupTCPServerSocket(const char *service);
+int setupTCPServerSocket(const int service);
 
 // Accept a new TCP connection on a server socket
 void handleNewConnection(struct selector_key * key);
+
+void handleAdminConnection(struct selector_key * key);
 
 #endif 

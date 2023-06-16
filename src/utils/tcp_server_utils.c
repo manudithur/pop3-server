@@ -39,7 +39,7 @@ static int setupSockAddr(char* addr, unsigned short port, void* res, socklen_t* 
  ** Se encarga de resolver el número de puerto para service (puede ser un string con el numero o el nombre del servicio)
  ** y crear el socket pasivo, para que escuche en cualquier IP, ya sea v4 o v6
  */
-int setupTCPServerSocket(const char *service) {
+int setupTCPServerSocket(const int service) {
 	
 	int opt = 1;
 
@@ -49,7 +49,7 @@ int setupTCPServerSocket(const char *service) {
 	int servSock = -1;
 
         //IPV6 y puerto hardcodeado
-        if(setupSockAddr("::FFFF:127.0.0.1", 5000, &localAddr, &addrSize )){
+        if(setupSockAddr("::FFFF:127.0.0.1", service, &localAddr, &addrSize )){
           printf("problem 0\n");
           return -1;
         }
@@ -149,6 +149,25 @@ static struct state_definition states[] = {
     }
 };
 
+
+static struct state_definition mgmt_states[] = {
+        {
+            .state = AUTH_MGMT,
+            .on_read_ready = readHandler,
+            .on_write_ready = writeHandler
+        },
+        {
+            .state = ACTIVE_MGMT,
+            .on_read_ready = readHandler,
+            .on_write_ready = writeHandler
+        },
+        {
+            .state = ERROR_MGMT,
+            .on_read_ready = readHandler,
+            .on_write_ready = errorHandler
+        }
+};
+
 void handleNewConnection(struct selector_key * key){
 
 	struct sockaddr_storage clntAddr; // Client address
@@ -195,6 +214,46 @@ void handleNewConnection(struct selector_key * key){
 		free(client);
 		return;
 	}
-
-
 }
+
+void handleAdminConnection(struct selector_key * key){
+    struct sockaddr_storage clntAddr;
+    socklen_t clntAddrLen = sizeof(clntAddr);
+
+    int clntSock = accept(key->fd, (struct sockaddr *) &clntAddr, &clntAddrLen);
+    if (clntSock < 0) {
+        return;
+    }
+
+    if (clntSock > 1023) {
+        close(clntSock);
+        return;
+    }
+
+
+    printSocketAddress((struct sockaddr *) &clntAddr, addrBuffer);
+
+    struct mgmt_data * client = calloc(1, sizeof(struct client_data));
+    if(client == NULL){
+        close(clntSock);
+        return;
+    }
+
+    buffer_init(&client->rbStruct, BUFFER_LEN, client->rb);
+    buffer_init(&client->wbStruct, BUFFER_LEN, client->wb);
+    client->fd = clntSock;
+    client->parser = parser_init(parser_no_classes(),&definition);
+    client->stm.initial = AUTH_MGMT;
+    client->stm.max_state = ERROR_MGMT;
+    client->stm.states = mgmt_states;
+    stm_init(&client->stm);
+
+    int register_status = selector_register(key->s, clntSock, &pop3_handler, OP_READ, client);
+
+    if(register_status != SELECTOR_SUCCESS){
+        close(clntSock);
+        free(client);
+        return;
+    }
+}
+

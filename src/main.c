@@ -20,7 +20,8 @@
 #define FALSE  0
 #define MAX_SOCKETS 1000
 #define BUFFSIZE 1024
-#define POP3_PORT "5000"
+#define POP3_PORT 5000
+#define MGMT_PORT 6000
 
 static int killServer = FALSE;
 
@@ -33,7 +34,7 @@ int main(int argc , char *argv[]){
     setvbuf(stdout, NULL, _IONBF, 0);
     setvbuf(stderr, NULL, _IONBF, 0);
 
-	close(STDIN_FILENO);
+    close(STDIN_FILENO);
 
     // Creamos el selector
     const char* err_msg = NULL;
@@ -49,6 +50,13 @@ int main(int argc , char *argv[]){
     };
 
 
+    initUsers();
+    parseAndAddUsers(argc-1, argv+1);
+    stats_init();
+    signal(SIGTERM, sigterm_handler);
+    signal(SIGINT, sigterm_handler);
+
+
     if (0 != selector_inits(&conf)) {
         exit(1);
     }
@@ -59,12 +67,8 @@ int main(int argc , char *argv[]){
         exit(1);
     }
 
-
+    //POP3 Server socket
     int serverSocket = setupTCPServerSocket(POP3_PORT);
-
-    signal(SIGTERM, sigterm_handler);
-    signal(SIGINT, sigterm_handler);
-
 
     fd_handler socket_handler = {
         .handle_read = handleNewConnection,
@@ -73,12 +77,28 @@ int main(int argc , char *argv[]){
         .handle_close = NULL
     };
 
-    initUsers();
-    parseAndAddUsers(argc-1, argv+1);
-
-    stats_init();
-
     ss = selector_register(selector, serverSocket, &socket_handler, OP_READ, NULL);
+    if(ss != SELECTOR_SUCCESS){
+        //handle error
+        return 1;
+    }
+
+
+    //Management socket
+    int mgmtSocket = setupTCPServerSocket(MGMT_PORT);
+    fd_handler mgmt_handler = {
+            .handle_read = handleAdminConnection,
+            .handle_write = NULL,
+            .handle_block = NULL,
+            .handle_close = NULL
+    };
+
+    ss = selector_register(selector, mgmtSocket, &mgmt_handler, OP_READ, NULL);
+    if(ss != SELECTOR_SUCCESS){
+        //handle error
+        return 1;
+    }
+
 
     while(!killServer){
         ss = selector_select(selector);
