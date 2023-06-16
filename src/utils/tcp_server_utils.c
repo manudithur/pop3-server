@@ -1,6 +1,5 @@
 #include "tcp_server_utils.h"
 
-
 #define MAXPENDING 5
 #define BUFSIZE 256
 #define MAX_ADDR_BUFFER 128
@@ -18,9 +17,6 @@ static int setupSockAddr(char* addr, unsigned short port, void* res, socklen_t* 
     sock6.sin6_family = AF_INET6;
     sock6.sin6_addr = in6addr_any;
     sock6.sin6_port = htons(port);
-    if (inet_pton(AF_INET6, addr, &sock6.sin6_addr) != 1) {
-      return 1;
-    }
 
     *((struct sockaddr_in6*)res) = sock6;
     *socklenResult = sizeof(struct sockaddr_in6);
@@ -33,9 +29,7 @@ static int setupSockAddr(char* addr, unsigned short port, void* res, socklen_t* 
   sock4.sin_family = AF_INET;
   sock4.sin_addr.s_addr = INADDR_ANY;
   sock4.sin_port = htons(port);
-  if (inet_pton(AF_INET, addr, &sock4.sin_addr) != 1) {
-    return 1;
-  }
+
   *((struct sockaddr_in*)res) = sock4;
   *socklenResult = sizeof(struct sockaddr_in);
   return 0;
