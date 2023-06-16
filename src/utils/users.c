@@ -7,8 +7,6 @@ static TUser * users;
 static int count;
 static int INITIALIZED = 0;
 
-static char adminToken[MAX_FIELD_SIZE];
-
 // Inicializa la estructura de usuarios
 void initUsers(){
     if(INITIALIZED)
@@ -18,7 +16,9 @@ void initUsers(){
 
     users = malloc(sizeof(TUser) * MAX_USERS);
     count = 0;
-    strncpy(adminToken, DEFAULT_ADMIN_TOKEN, MAX_FIELD_SIZE);
+
+    addUser("admin", "admin");
+    users[0].isAdmin = ADMIN_USER;
 }
 
 // Agrega un usuario a la estructura
@@ -35,6 +35,7 @@ int addUser(char * username, char * password){
 
     strncpy(users[count].username, username, strlen(username)+1);
     strncpy(users[count].password, password, strlen(password)+1);
+    users[count].isAdmin = STANDARD_USER;
 
     count++;
     return USER_ADDED;
@@ -59,6 +60,7 @@ int validateUser(char * username){
 
     for(int i = 0 ; i < count; i ++){
         if(strcmp(users[i].username, username) == 0 ){
+            printf("USER: %s\nROLE: %s", users[i].username, users[i].isAdmin == ADMIN_USER ? "ADMIN" : "STANDARD");
             return VALID_CREDENTIALS;
         }
     }
@@ -78,28 +80,18 @@ int validateUserCredentials(char * username, char * password){
     return INVALID_CREDENTIALS;
 }
 
-// Valida el token ingresado con el del administrador
-int validateAdminToken(char * token){
-    if(token == NULL)
-        return INVALID_CREDENTIALS;
+// Cambia la contrasena de un usuario
+int changePassword(char * username, char * oldPassword, char * newPassword){
+    if(username == NULL || oldPassword == NULL || newPassword == NULL)
+        return PASSWORD_CHANGE_FAILED;
 
-    if(strcmp(adminToken, token) == 0)
-        return VALID_CREDENTIALS;
+    for(int i = 0; i < count; i++)
+        if(strcmp(users[i].username, username) == 0 && strcmp(users[i].password, oldPassword) == 0){
+            strncpy(users[i].password, newPassword, strlen(newPassword)+1);
+            return PASSWORD_CHANGED_SUCCESSFULLY;
+        }
 
-    return INVALID_CREDENTIALS;
-}
-
-// Cambia el token del administrador
-int changeAdminToken(char * oldToken, char * newToken){
-    if(oldToken == NULL || newToken == NULL)
-        return TOKEN_UPDATE_FAILED;
-    
-    if(strcmp(adminToken, oldToken) == 0){
-        strncpy(adminToken, newToken, MAX_FIELD_SIZE);
-        return TOKEN_UPDATED_SUCCESSFULLY;
-
-    }
-    return TOKEN_UPDATE_FAILED;
+    return PASSWORD_CHANGE_FAILED;
 }
 
 // Libera toda la memoria utilizada por Users
