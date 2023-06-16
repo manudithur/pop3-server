@@ -1,7 +1,7 @@
 #include "pop3_actions.h"
 
 
-#define PATH_MAX_LENGTH 300
+
 
 unsigned user_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
@@ -403,27 +403,7 @@ unsigned quit_handler(selector_key *key){
             buffer_write(&data->wbStruct,buf[i]);
         }
     }
-
-    char dirPath[PATH_MAX_LENGTH];
-    snprintf(dirPath, PATH_MAX_LENGTH, "src/mail/");
-    snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "%s/", data->username);
-    snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "cur/");
-
-    DIR* directory = opendir(dirPath);
-    struct dirent* file;
-    int emailIndex = 0;
-
-    while ((file = readdir(directory)) != NULL) {
-        if (strcmp(file->d_name, ".") != 0 && strcmp(file->d_name, "..") != 0 && data->emailDeleted[emailIndex++] == true) {
-            char file_path[100];
-            snprintf(file_path, sizeof(file_path), "%s/%s", dirPath, file->d_name);
-            remove(file_path);
-        }
-    }
-
-    closedir(directory);
-    //finishConnection();
-    return data->stm.current->state;
+    return UPDATE_STATE;
 }
 
 unsigned capa_handler(selector_key *key){

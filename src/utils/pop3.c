@@ -40,6 +40,65 @@ static unsigned check_commands(struct selector_key * key, const commands * comma
     return ERROR_STATE;
 }
 
+void mailDeleter(const unsigned state,struct selector_key * key){
+    client_data * data = ATTACHMENT(key);
+
+    char dirPath[PATH_MAX_LENGTH];
+    snprintf(dirPath, PATH_MAX_LENGTH, "src/mail/");
+    snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "%s/", data->username);
+    snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "cur/");
+
+    DIR* directory = opendir(dirPath);
+    struct dirent* file;
+    int emailIndex = 0;
+
+    while ((file = readdir(directory)) != NULL) {
+        if (strcmp(file->d_name, ".") != 0 && strcmp(file->d_name, "..") != 0 && data->emailDeleted[emailIndex++] == true) {
+            char file_path[100];
+            snprintf(file_path, sizeof(file_path), "%s/%s", dirPath, file->d_name);
+            remove(file_path);
+        }
+    }
+
+    closedir(directory);
+    unregisterHandler(key);
+}
+
+void unregisterHandler(struct selector_key * key){
+    client_data * data = ATTACHMENT(key);
+
+    size_t writeLimit;
+    ssize_t writeCount;
+    uint8_t* writeBuffer;
+
+    writeBuffer = buffer_read_ptr(&data->wbStruct, &writeLimit);
+    writeCount = send(data->fd, writeBuffer, writeLimit, MSG_NOSIGNAL);
+    stats_update(writeCount,0,0);
+
+    if (writeCount <= 0) {
+        printf("error en write\n");
+        return;
+    }
+
+    buffer_read_adv(&data->wbStruct, writeCount);
+    selector_set_interest_key(key, OP_READ);
+
+    selector_unregister_fd(key->s, key->fd);
+}
+
+void freeAll(const unsigned state, struct selector_key * key){
+    //hace todos los frees
+    client_data * data = ATTACHMENT(key);
+    free(data->username);
+    free(data->emailDeleted);
+    parser_destroy(data->parser);
+    free(data->emailptr);
+    free(data);
+
+    close(key->fd);
+    key->data = NULL;
+}
+
 unsigned errorHandler(struct selector_key *key){
     client_data * data = ATTACHMENT(key);
     char buf[] = {"-ERR\r\n"};
@@ -161,7 +220,6 @@ unsigned writeHandler(struct selector_key *key){
 
     buffer_read_adv(&data->wbStruct, writeCount);
     selector_set_interest_key(key, OP_READ);
-//
 
     //if I can read more from buffer -> return UPDATE_STATE? no estoy seguro, tiene que seguir escribiendo
     return data->stm.current->state;

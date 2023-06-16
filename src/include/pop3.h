@@ -8,6 +8,9 @@
 #include "pop3_parser_impl.h"
 #include "pop3_actions.h"
 #include "stats.h"
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/socket.h>
 
 #define COMMAND_AMOUNT 10
 #define TRANSACTION_COMMAND_AMOUNT 8
@@ -17,6 +20,9 @@
 unsigned readHandler(struct selector_key * key);
 unsigned writeHandler(struct selector_key *key);
 unsigned errorHandler(struct selector_key *key);
+void freeAll(const unsigned state, struct selector_key * key);
+void unregisterHandler(struct selector_key * key);
+void mailDeleter(const unsigned state,struct selector_key * key);
 
 
 

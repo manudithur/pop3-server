@@ -101,15 +101,11 @@ static void pop3_write(struct selector_key *key) {
 static void pop3_close(struct selector_key *key) {
 struct state_machine* stm = &ATTACHMENT(key)->stm;
     stm_handler_close(stm, key);
-    //TODO : cerrar la conexion al cliente
 }
 
 static void pop3_block(struct selector_key *key) {
 	struct state_machine* stm = &ATTACHMENT(key)->stm;
     const enum pop3_states st = stm_handler_block(stm, key);
-    //if (st == ERROR || st == DONE) {
-        
-    //}
 }
 
 static fd_handler pop3_handler = {
@@ -125,27 +121,31 @@ static struct state_definition states[] = {
 		//TODO
 		.on_arrival = NULL,
 		.on_read_ready = readHandler,
-        .on_write_ready = writeHandler
+        .on_write_ready = writeHandler,
+        .on_departure = NULL
 	},
 	{
 		.state = TRANSACTION_STATE,
 		//TODO
 		.on_arrival = NULL,
 		.on_read_ready = readHandler,
-        .on_write_ready = writeHandler
+        .on_write_ready = writeHandler,
+        .on_departure = NULL
 	},
 	{
 		.state = UPDATE_STATE,
 		//TODO
-		.on_arrival = NULL,
+		.on_arrival = mailDeleter,
 		.on_write_ready = writeHandler,
-        .on_read_ready = readHandler
+        .on_read_ready = readHandler,
+        .on_departure = freeAll
 	},
     {
         .state = ERROR_STATE,
         .on_arrival = NULL,  //TODO: manejar error
         .on_read_ready = readHandler,
-        .on_write_ready = errorHandler
+        .on_write_ready = errorHandler,
+        .on_departure = NULL
     }
 };
 
