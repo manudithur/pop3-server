@@ -19,6 +19,7 @@
 
 #define BUFFER_LENGTH 10
 #define BUFFER 5000
+#define DEFAULT_MAIL_COUNT 3
 
 typedef struct email{
     int email_fd;

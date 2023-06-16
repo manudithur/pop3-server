@@ -27,24 +27,55 @@ unsigned user_handler(selector_key *key){
     snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "cur/");
 
     dir = opendir(dirPath);
-//    if (dir == NULL) {
-//        return ERROR_STATE; //TODO: que se cree la carpeta del usuario si el usuario no tiene una carpeta
-//    }
 
-    while ((entry = readdir(dir)) != NULL) {
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
-            continue;
-        if (entry->d_type == DT_REG) {  // Regular file
-            emailCount++;
+    const char * defaultMail1Path = "src/mail/defaults/default_mail1";
+    const char * defaultMail2Path = "src/mail/defaults/default_mail2";
+    const char * defaultMail3Path = "src/mail/defaults/default_mail3";
+
+    char destinationFilePath[100];
+
+    if (dir == NULL){
+        char newDirPath[PATH_MAX_LENGTH] = {0};
+        snprintf(newDirPath, PATH_MAX_LENGTH, "src/mail/%s",data->username);
+        mkdir(newDirPath, 0777);
+        mkdir(dirPath, 0777);
+
+        const char * sourceFiles[DEFAULT_MAIL_COUNT] = {defaultMail1Path, defaultMail2Path, defaultMail3Path};
+        const char * destinationFiles[DEFAULT_MAIL_COUNT] = {"default_mail1", "default_mail2", "default_mail3"};
+        emailCount = 3;
+        for (int i = 0; i < DEFAULT_MAIL_COUNT;i++){
+            FILE* sourceFile = fopen(sourceFiles[i], "rb");
+
+            snprintf(destinationFilePath, sizeof(destinationFilePath), "%s%s", dirPath, destinationFiles[i]);
+            FILE* destinationFile = fopen(destinationFilePath, "wb");
+            printf("COMO ESTAS\n");
+
+            int c;
+            while ((c = fgetc(sourceFile)) != EOF) {
+                fputc(c, destinationFile);
+            }
+
+            fclose(sourceFile);
+            fclose(destinationFile);
         }
-    }
 
-    closedir(dir);
+
+
+    }
+    else{
+        while ((entry = readdir(dir)) != NULL) {
+            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+                continue;
+            if (entry->d_type == DT_REG) {  // Regular file
+                emailCount++;
+            }
+        }
+
+        closedir(dir);
+    }
 
     data->emailDeleted = calloc(1, sizeof(bool) * emailCount);  //inicializa todos los mails como no borrados
     data->emailCount = emailCount;
-    printf("el email count es: %d\n", emailCount);
-    printf("%s\n",data->command.arg1 );
 
     return AUTH_STATE;
 }
