@@ -14,7 +14,9 @@ void stats_init(){
     stats->concurrentConnections = 0;
     return;
 
-} //inicialmente va a ser volatil, en un futuro se pueden guardar en un archivo
+} 
+
+//Volatil, en un futuro se pueden guardar en un archivo
 void stats_update( size_t bytesSent, size_t bytesReceived, size_t mailsSent){
     if(stats == NULL) return;
     stats->totalBytesSent += bytesSent;
@@ -39,11 +41,31 @@ void stats_remove_connection(){
     stats->concurrentConnections--;
 }
 
+size_t getTotalConnections(){
+    if(stats == NULL) return 0;
+    return stats->totalConnections;
+}
+
+size_t getTotalBytesSent(){
+    if(stats == NULL) return 0;
+    return stats->totalBytesSent;
+}
+
+size_t getTotalBytesReceived(){
+    if(stats == NULL) return 0;
+    return stats->totalBytesReceived;
+}
+
+size_t getConcurrentConnections(){
+    if(stats == NULL) return 0;
+    return stats->concurrentConnections;
+}
+
 void stats_print(){
     if(stats == NULL) return;
     printf("Total connections: %ld\n", stats->totalConnections);
     printf("Total bytes sent: %ld\n", stats->totalBytesSent);
     printf("Total bytes received: %ld\n", stats->totalBytesReceived);
-    printf("Total mails sent: %ld\n", stats->totalMailsSent);
+    printf("Total mails retrieved: %ld\n", stats->totalMailsSent);
     printf("Concurrent connections: %ld\n", stats->concurrentConnections);
 }

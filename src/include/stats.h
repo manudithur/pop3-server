@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 // 5.  implementar mecanismos que permitan recolectar métricas que
 //        ayuden a monitorear la operación del sistema.
@@ -31,6 +32,14 @@ void stats_init(); //inicialmente va a ser volatil, en un futuro se pueden guard
 void stats_update(size_t bytesSent, size_t bytesReceived, size_t mailsSent);
 void stats_add_connection();
 void stats_remove_connection();
+
+size_t getTotalConnections();
+
+size_t getTotalBytesSent();
+
+size_t getTotalBytesReceived();
+
+size_t getConcurrentConnections();
 
 void stats_destroy();
 

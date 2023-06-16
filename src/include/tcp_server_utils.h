@@ -15,6 +15,7 @@
 #include "stm.h"
 #include "states.h"
 #include "parser.h"
+#include "mgmt.h"
 #include "pop3.h"
 #include "pop3_parser_impl.h"
 #include "pop3_actions.h"

@@ -1,5 +1,6 @@
 #include "tcp_server_utils.h"
 
+
 #define MAXPENDING 5
 #define BUFSIZE 256
 #define MAX_ADDR_BUFFER 128
@@ -153,18 +154,18 @@ static struct state_definition states[] = {
 static struct state_definition mgmt_states[] = {
         {
             .state = AUTH_MGMT,
-            .on_read_ready = readHandler,
-            .on_write_ready = writeHandler
+            .on_read_ready = mgmt_readHandler,
+            .on_write_ready = mgmt_writeHandler
         },
         {
             .state = ACTIVE_MGMT,
-            .on_read_ready = readHandler,
-            .on_write_ready = writeHandler
+            .on_read_ready = mgmt_readHandler,
+            .on_write_ready = mgmt_writeHandler
         },
         {
             .state = ERROR_MGMT,
-            .on_read_ready = readHandler,
-            .on_write_ready = errorHandler
+            .on_read_ready = mgmt_readHandler,
+            .on_write_ready = mgmt_errorHandler
         }
 };
 
@@ -216,6 +217,43 @@ void handleNewConnection(struct selector_key * key){
 	}
 }
 
+static void mgmt_read(struct selector_key *key) {
+	struct state_machine* stm = &ATTACHMENT(key)->stm;
+    const enum pop3_states st = stm_handler_read(stm, key);
+    //if (st == ERROR || st == DONE) {
+        //TODO:cerrar conexion
+    //}
+}
+
+static void mgmt_write(struct selector_key *key) {
+	struct state_machine* stm = &ATTACHMENT(key)->stm;
+    const enum pop3_states st = stm_handler_write(stm, key);
+    //if (st == ERROR || st == DONE) {
+       //TODO:cerrar conexion
+   // }
+}
+
+static void mgmt_close(struct selector_key *key) {
+struct state_machine* stm = &ATTACHMENT(key)->stm;
+    stm_handler_close(stm, key);
+    //TODO : cerrar la conexion al cliente
+}
+
+static void mgmt_block(struct selector_key *key) {
+	struct state_machine* stm = &ATTACHMENT(key)->stm;
+    const enum pop3_states st = stm_handler_block(stm, key);
+    //if (st == ERROR || st == DONE) {
+        
+    //}
+}
+
+static fd_handler mgmt_handler = {
+	.handle_read =  mgmt_read,
+	.handle_write = mgmt_write,
+	.handle_close = mgmt_close,
+	.handle_block = mgmt_block
+};
+
 void handleAdminConnection(struct selector_key * key){
     struct sockaddr_storage clntAddr;
     socklen_t clntAddrLen = sizeof(clntAddr);
@@ -229,6 +267,10 @@ void handleAdminConnection(struct selector_key * key){
         close(clntSock);
         return;
     }
+
+    stats_add_connection();
+	printSocketAddress((struct sockaddr *) &clntAddr, addrBuffer);
+	log(INFO, "Handling client %s", addrBuffer);
 
 
     printSocketAddress((struct sockaddr *) &clntAddr, addrBuffer);
@@ -248,7 +290,7 @@ void handleAdminConnection(struct selector_key * key){
     client->stm.states = mgmt_states;
     stm_init(&client->stm);
 
-    int register_status = selector_register(key->s, clntSock, &pop3_handler, OP_READ, client);
+    int register_status = selector_register(key->s, clntSock, &mgmt_handler, OP_READ, client);
 
     if(register_status != SELECTOR_SUCCESS){
         close(clntSock);
