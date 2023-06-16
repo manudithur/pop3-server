@@ -22,7 +22,7 @@ unsigned user_handler(selector_key *key){
     struct dirent *entry;
 
     char dirPath[PATH_MAX_LENGTH];
-    snprintf(dirPath, PATH_MAX_LENGTH, "src/mail_test/");
+    snprintf(dirPath, PATH_MAX_LENGTH, "src/mail/");
     snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "%s/", data->username);
     snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "cur/");
 
@@ -69,22 +69,27 @@ unsigned stat_handler(selector_key *key){
     struct dirent* entry;
     struct stat fileStat;
     int count = 0;
+    int index = 0;
     long long int totalSize = 0;
-    const char *path = "src/mail_test";
+    char dirPath[PATH_MAX_LENGTH];
+    snprintf(dirPath, PATH_MAX_LENGTH, "src/mail/");
+    snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "%s/", data->username);
+    snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "cur/");
     char resultBuffer[256];
 
-    directory = opendir(path);
+    directory = opendir(dirPath);
     if (directory == NULL) {
-        printf("ERROR - unable to open mailbox");
         return ERROR_STATE;
     }
     while ((entry = readdir(directory)) != NULL) {
         char filePath[PATH_MAX_LENGTH];
-        snprintf(filePath, PATH_MAX_LENGTH, "%s/%s", path, entry->d_name);
+        snprintf(filePath, PATH_MAX_LENGTH, "%s/%s", dirPath, entry->d_name);
         if (stat(filePath, &fileStat) == 0) {
         if (S_ISREG(fileStat.st_mode)) {
-            count++;
-            totalSize += fileStat.st_size;
+            if (data->emailDeleted[index++] == false){
+                count++;
+                totalSize += fileStat.st_size;
+            }
             }
         }
     }
@@ -107,32 +112,37 @@ unsigned list_handler(selector_key *key){
     struct stat fileStat;
     long long int totalSize = 0;
     int count = 0;
-    const char *path = "src/mail_test";
+    int index = 0;
+    char dirPath[PATH_MAX_LENGTH];
+    snprintf(dirPath, PATH_MAX_LENGTH, "src/mail/");
+    snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "%s/", data->username);
+    snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "cur/");
 
     //Decision de diseño: buffer de 5000 caracteres
     char resultBuffer[BUFFER_LEN];
 
-    directory = opendir(path);
+    directory = opendir(dirPath);
     if (directory == NULL) {
-        printf("ERROR - unable to open mailbox\n");
         return ERROR_STATE;
     }
 
     snprintf(resultBuffer, sizeof(resultBuffer), "+OK LIST\n");
     while ((entry = readdir(directory)) != NULL) {
         char filePath[PATH_MAX_LENGTH];
-        snprintf(filePath, PATH_MAX_LENGTH, "%s/%s", path, entry->d_name);
+        snprintf(filePath, PATH_MAX_LENGTH, "%s/%s", dirPath, entry->d_name);
         if (stat(filePath, &fileStat) == 0) {
             if (S_ISREG(fileStat.st_mode)) {
-                //printf("File %d size: %lld\n", count, fileStat.st_size);
-                count++;
-                snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer), "%d %lld\n", count, fileStat.st_size);
+                if (data->emailDeleted[index++] == false){
+                    count++;
+                    snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer), "%d %lld\n", count, fileStat.st_size);
+                }
+
             }
         }
     }
 
     closedir(directory);
-    snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer), "\r\n");
+//    snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer), "\r\n");
 
     for(int i = 0; i < strlen(resultBuffer); i++){
         if (buffer_can_write(&data->wbStruct)){
@@ -182,8 +192,6 @@ void read_mail_handler(struct selector_key *key){
     //    return -1;
         return;
     }
-    printf("ANTES\n");
-    
     //deberia preguntar si el otro puede escribir tambien?
     while(buffer_can_read(mail_buffer)){
         readBuffer=buffer_read_ptr(mail_buffer, &readLimit);
@@ -192,7 +200,6 @@ void read_mail_handler(struct selector_key *key){
     }
     buffer_write(email_data->pStruct, '\r');
     buffer_write(email_data->pStruct, '\n');
-    printf("2\n");
     //SOLO SI TERMINE DE ESCRIBIR EL MAIL, O SI NO HAY MAS LUGAR EN EL BUFFER DEL PADRE
     //selector_set_interest_key(key, OP_NOOP);
     
@@ -228,7 +235,7 @@ unsigned retr_handler(selector_key *key){
     struct stat fileStat;
     long long int totalSize = 0;
     char dirPath[PATH_MAX_LENGTH];
-    snprintf(dirPath, PATH_MAX_LENGTH, "src/mail_test/");
+    snprintf(dirPath, PATH_MAX_LENGTH, "src/mail/");
     snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "%s/", data->username);
     snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "cur/");
     if (data->command.arg2[0] != '\0' || isNumber(data->command.arg1) == false){
@@ -237,35 +244,32 @@ unsigned retr_handler(selector_key *key){
     int targetFileIndex = atoi(data->command.arg1) -1;
     DIR *dir = opendir(dirPath);
     if (dir == NULL) {
-        printf("Failed to open directory '%s'\n", dirPath);
-        return 1;
+        return ERROR_STATE;
     }
      struct dirent *entry;
     int fileCount = 0;
+    int index = 0;
     char filePath[PATH_MAX_LENGTH];
     while ((entry = readdir(dir)) != NULL) {
         // Ignore "." and ".." directories
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
             continue;
+        if (data->emailDeleted[index++] == false){
+            if (fileCount == targetFileIndex) {
+                // Found the desired file
 
-        if (fileCount == targetFileIndex) {
-            // Found the desired file
-            
-            snprintf(filePath, PATH_MAX_LENGTH, "%s%s", dirPath, entry->d_name);
-            printf("File path: %s\n", filePath);
+                snprintf(filePath, PATH_MAX_LENGTH, "%s%s", dirPath, entry->d_name);
+                fileCount++;
+                break;
+            }
+
             fileCount++;
-            break;
         }
-
-        fileCount++;
     }
     stats_update(0,0,1);
     if (fileCount <= targetFileIndex) { 
-        printf("The directory '%s' does not have a file at index %d\n", dirPath, targetFileIndex);
         return ERROR_STATE;
     }
- 
-    
 
     closedir(dir);
     //printf("retr handler\n");
@@ -291,8 +295,7 @@ unsigned retr_handler(selector_key *key){
 
     data->emailptr = email_data;
     buffer_init(&email_data->bStruct, BUFFER_LEN, email_data->buffer);
-    printf("llegue1\n");
-    
+
     selector_register(key->s, email_data->email_fd, &mail_handler, OP_READ, email_data);
 
     //como llamo al read_mail_handler?? => calculo que se llama solo porque el fd va a estar llenisimo por el mail
@@ -303,30 +306,30 @@ unsigned retr_handler(selector_key *key){
 
 
 unsigned dele_handler(selector_key *key){
-    printf("Print en el delete\n");
     client_data * data = ATTACHMENT(key);
     char buf[] = {"+OK MESSAGE DELETED\r\n"};
     int n = atoi(data->command.arg1) -1;
     if (data->command.arg2[0] != '\0' || isNumber(data->command.arg1) == false || n > data->emailCount - 1 || n < 0){
-        printf("el problema es en el arg2: %d\n", data->command.arg2[0] != '\0');
-        printf("el problema es en el numero: %d\n", isNumber(data->command.arg1)== false);
-        printf("el problema es en el email count: %d\n", n > data->emailCount - 1 );
-        printf("el problema es en el email count: %d\n",  n < 0);
-
-
-        printf("se rompe aca\n");
         return ERROR_STATE;
     }
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
-            printf("print de gayba");
             buffer_write(&data->wbStruct,buf[i]);
         }
     }
     DIR *dir;
     struct dirent *entry;
-    printf("%d", n );
-    data->emailDeleted[n] = true;
+    int index = 0;
+    for (int i = 0; i < data->emailCount; i++)
+    {
+        if (data->emailDeleted[i] == false){
+            if (n == index){
+                data->emailDeleted[i] = true;
+                break;
+            }
+            index++;
+        }
+    }
     return TRANSACTION_STATE;
 }
 
@@ -371,7 +374,7 @@ unsigned quit_handler(selector_key *key){
     }
 
     char dirPath[PATH_MAX_LENGTH];
-    snprintf(dirPath, PATH_MAX_LENGTH, "src/mail_test/");
+    snprintf(dirPath, PATH_MAX_LENGTH, "src/mail/");
     snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "%s/", data->username);
     snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "cur/");
 
