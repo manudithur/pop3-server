@@ -18,11 +18,16 @@
 #define TOKEN_UPDATED_SUCCESSFULLY 1
 #define TOKEN_UPDATE_FAILED -1
 
-#define DEFAULT_ADMIN_TOKEN "admin"
+#define STANDARD_USER 0
+#define ADMIN_USER 1
+
+#define PASSWORD_CHANGED_SUCCESSFULLY 1
+#define PASSWORD_CHANGE_FAILED -1
 
 typedef struct{
     char username[MAX_FIELD_SIZE];
     char password[MAX_FIELD_SIZE];
+    int  isAdmin;
 } TUser;
 
 // Inicializa la estructura de usuarios
@@ -40,13 +45,10 @@ int validateUserCredentials(char * username, char * password);
 // Busca un usuario en la estructura
 int getUserByUsername(char * username);
 
+// Cambia la contrasena de un usuario
+int changePassword(char * username, char * oldPassword, char * newPassword);
+
 // Libera toda la memoria utilizada por Users
 void destroyUsers();
-
-// Valida el token ingresado con el del administrador
-int validateAdminToken(char * token);
-
-// Cambia el token del administrador
-int changeAdminToken(char * oldToken, char * newToken);
 
 #endif
