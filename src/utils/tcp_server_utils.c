@@ -218,7 +218,7 @@ void handleNewConnection(struct selector_key * key){
 
     dprintf(client->fd, "+OK POP3 server ready\r\n");
 
-    int register_status = selector_register(key->s, clntSock, &pop3_handler, OP_READ, client);
+    int register_status = selector_register(key->s, clntSock, &pop3_handler, OP_WRITE, client);
 
 	if(register_status != SELECTOR_SUCCESS){
 		close(clntSock);
