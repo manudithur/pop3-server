@@ -4,8 +4,12 @@
 #define MAXPENDING 5
 #define BUFSIZE 256
 #define MAX_ADDR_BUFFER 128
+#define MAX_CONNECTIONS 1023
+//#define MAX_CONNECTIONS 0
 
 static char addrBuffer[MAX_ADDR_BUFFER];
+
+static int max_connections = MAX_CONNECTIONS;
 
 static int setupSockAddr(char* addr, unsigned short port, void* res, socklen_t* socklenResult) {
   int ipv6 = strchr(addr, ':') != NULL;
@@ -181,7 +185,8 @@ void handleNewConnection(struct selector_key * key){
 		return;
 	}
 
-	if (clntSock > 1023) {
+	if (clntSock > max_connections) {
+        maxConnectionsReached(clntSock);
         close(clntSock);
         return;
     }
@@ -211,7 +216,9 @@ void handleNewConnection(struct selector_key * key){
 	client->stm.states = states;
 	stm_init(&client->stm);
 
-	int register_status = selector_register(key->s, clntSock, &pop3_handler, OP_WRITE, client);
+    dprintf(client->fd, "+OK POP3 server ready\r\n");
+
+    int register_status = selector_register(key->s, clntSock, &pop3_handler, OP_WRITE, client);
 
 	if(register_status != SELECTOR_SUCCESS){
 		close(clntSock);
@@ -257,6 +264,16 @@ static fd_handler mgmt_handler = {
 	.handle_block = mgmt_block
 };
 
+//TODO: verificar q el numero este bien y devolver int
+void changeMaxConnections(int newMax){
+    max_connections = newMax;
+}
+
+void maxConnectionsReached(int clntSock){
+    dprintf(clntSock, "-ERR MAX CONNECTIONS REACHED\r\n");
+}
+
+
 void handleAdminConnection(struct selector_key * key){
     struct sockaddr_storage clntAddr;
     socklen_t clntAddrLen = sizeof(clntAddr);
@@ -266,7 +283,8 @@ void handleAdminConnection(struct selector_key * key){
         return;
     }
 
-    if (clntSock > 1023) {
+    if (clntSock > max_connections) {
+        maxConnectionsReached(clntSock);
         close(clntSock);
         return;
     }
@@ -292,6 +310,8 @@ void handleAdminConnection(struct selector_key * key){
     client->stm.max_state = ERROR_MGMT;
     client->stm.states = mgmt_states;
     stm_init(&client->stm);
+
+    dprintf(client->fd, "+OK Management server ready\r\n");
 
     int register_status = selector_register(key->s, clntSock, &mgmt_handler, OP_READ, client);
 
