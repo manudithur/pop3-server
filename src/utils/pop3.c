@@ -43,24 +43,27 @@ static unsigned check_commands(struct selector_key * key, const commands * comma
 void mailDeleter(const unsigned state,struct selector_key * key){
     client_data * data = ATTACHMENT(key);
 
-    char dirPath[PATH_MAX_LENGTH];
-    snprintf(dirPath, PATH_MAX_LENGTH, "src/mail/");
-    snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "%s/", data->username);
-    snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "cur/");
+    if (data->username != NULL) {
+        char dirPath[PATH_MAX_LENGTH];
+        snprintf(dirPath, PATH_MAX_LENGTH, "src/mail/");
+        snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "%s/", data->username);
+        snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "cur/");
 
-    DIR* directory = opendir(dirPath);
-    struct dirent* file;
-    int emailIndex = 0;
+        DIR* directory = opendir(dirPath);
+        struct dirent* file;
+        int emailIndex = 0;
 
-    while ((file = readdir(directory)) != NULL) {
-        if (strcmp(file->d_name, ".") != 0 && strcmp(file->d_name, "..") != 0 && data->emailDeleted[emailIndex++] == true) {
-            char file_path[100];
-            snprintf(file_path, sizeof(file_path), "%s/%s", dirPath, file->d_name);
-            remove(file_path);
+        while ((file = readdir(directory)) != NULL) {
+            if (strcmp(file->d_name, ".") != 0 && strcmp(file->d_name, "..") != 0 && data->emailDeleted[emailIndex++] == true) {
+                char file_path[100];
+                snprintf(file_path, sizeof(file_path), "%s/%s", dirPath, file->d_name);
+                remove(file_path);
+            }
         }
+
+        closedir(directory);
     }
 
-    closedir(directory);
     unregisterHandler(key);
 }
 
@@ -89,9 +92,14 @@ void unregisterHandler(struct selector_key * key){
 void freeAll(const unsigned state, struct selector_key * key){
     //hace todos los frees
     client_data * data = ATTACHMENT(key);
-    free(data->username);
+    if (data->username != NULL){
+        free(data->username);
+    }
     free(data->emailDeleted);
     parser_destroy(data->parser);
+    if (data->emailptr != NULL){
+        selector_unregister_fd(key->s, data->emailptr->email_fd);
+    }
     free(data->emailptr);
     free(data);
 

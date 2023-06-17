@@ -204,7 +204,10 @@ void handleNewConnection(struct selector_key * key){
 	client->stm.initial = AUTH_STATE;
 	client->stm.max_state = ERROR_STATE;
     client->parser = parser_init(parser_no_classes(),&definition);
-	
+
+    client->username = NULL;
+    client->emailptr = NULL;
+
 	client->stm.states = states;
 	stm_init(&client->stm);
 
