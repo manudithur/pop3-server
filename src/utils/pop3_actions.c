@@ -48,7 +48,6 @@ unsigned user_handler(selector_key *key){
 
             snprintf(destinationFilePath, sizeof(destinationFilePath), "%s%s", dirPath, destinationFiles[i]);
             FILE* destinationFile = fopen(destinationFilePath, "wb");
-            printf("COMO ESTAS\n");
 
             int c;
             while ((c = fgetc(sourceFile)) != EOF) {
@@ -171,7 +170,7 @@ unsigned list_handler(selector_key *key){
             }
         }
     }
-
+    snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer), "\r\n");
     closedir(directory);
 //    snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer), "\r\n");
 
@@ -229,6 +228,9 @@ void read_mail_handler(struct selector_key *key){
         buffer_write(email_data->pStruct, *readBuffer); //escribo lo que lei en el buffer del padre
         buffer_read_adv(mail_buffer, 1);
     }
+    buffer_write(email_data->pStruct, '\r');
+    buffer_write(email_data->pStruct, '\n');
+    buffer_write(email_data->pStruct, '.');
     buffer_write(email_data->pStruct, '\r');
     buffer_write(email_data->pStruct, '\n');
     //SOLO SI TERMINE DE ESCRIBIR EL MAIL, O SI NO HAY MAS LUGAR EN EL BUFFER DEL PADRE
@@ -316,7 +318,7 @@ unsigned retr_handler(selector_key *key){
     }
     char aux[50] = {0};
     uint8_t * writeBuffer = buffer_write_ptr(&data->wbStruct, &writeLimit );
-    snprintf(aux, sizeof(aux), "+OK %lld octets\n", totalSize);
+    snprintf(aux, sizeof(aux), "+OK %lld octets\r\n", totalSize);
     for(int i = 0; i < strlen(aux); i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,aux[i]);
@@ -338,7 +340,7 @@ unsigned retr_handler(selector_key *key){
 
 unsigned dele_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
-    char buf[] = {"+OK MESSAGE DELETED\r\n"};
+    char buf[] = {"+OK MESSAGE DELETED\r\n.\r\n"};
     int n = atoi(data->command.arg1) -1;
     if (data->command.arg2[0] != '\0' || isNumber(data->command.arg1) == false || n > data->emailCount - 1 || n < 0){
         return ERROR_STATE;
@@ -368,7 +370,7 @@ unsigned rset_handler(selector_key *key){
     //reset the SMTP connection to the initial state in which the sender
     // and recipient buffers are erased and the connection is ready to begin a new mail transaction.
     client_data * data = ATTACHMENT(key);
-    char buf[] = {"+OK RESET STATE\r\n"};
+    char buf[] = {"+OK RESET STATE\r\n.\r\n"};
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,buf[i]);
@@ -384,7 +386,7 @@ unsigned rset_handler(selector_key *key){
 
 unsigned noop_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
-    char buf[] = {"+OK NOOP\r\n"};
+    char buf[] = {"+OK NOOP\r\n.\r\n"};
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,buf[i]);
@@ -397,7 +399,7 @@ unsigned noop_handler(selector_key *key){
 //Deberia devolver el estado AUTH no?
 unsigned quit_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
-    char buf[] = {"+OK GOODBYE\r\n"};
+    char buf[] = {"+OK GOODBYE\r\n.\r\n"};
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,buf[i]);
@@ -408,7 +410,7 @@ unsigned quit_handler(selector_key *key){
 
 unsigned capa_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
-    char buf[] = {"+OK CAPA\nUSER\nPASS\nQUIT\nCAPA\nLIST\nRETR\nSTAT\nDELE\nNOOP\nRSET\r\n"};
+    char buf[] = {"+OK CAPA\r\nUSER\r\nPASS\r\nQUIT\r\nCAPA\r\nLIST\r\nRETR\r\nSTAT\r\nDELE\r\nNOOP\r\nRSET\r\n.\r\n"};
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,buf[i]);

@@ -211,7 +211,7 @@ void handleNewConnection(struct selector_key * key){
 	client->stm.states = states;
 	stm_init(&client->stm);
 
-	int register_status = selector_register(key->s, clntSock, &pop3_handler, OP_READ, client);
+	int register_status = selector_register(key->s, clntSock, &pop3_handler, OP_WRITE, client);
 
 	if(register_status != SELECTOR_SUCCESS){
 		close(clntSock);

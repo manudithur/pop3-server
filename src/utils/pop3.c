@@ -127,15 +127,15 @@ unsigned readHandler(struct selector_key * key) {
     uint8_t * readBuffer;
     unsigned retState;
 
-    readBuffer = buffer_write_ptr(&data->rbStruct, &readLimit);
-    readCount = recv(key->fd, readBuffer, readLimit, 0);
-    stats_update(0,readCount,0);
-
-    if (readCount <= 0) {
+    if(!buffer_can_read(&data->rbStruct)){
+        readBuffer = buffer_write_ptr(&data->rbStruct, &readLimit);
+        readCount = recv(key->fd, readBuffer, readLimit, 0);
+        stats_update(0,readCount,0);
+        if (readCount <= 0) {
         return -1;
+        }
+        buffer_write_adv(&data->rbStruct, readCount);
     }
-
-    buffer_write_adv(&data->rbStruct, readCount);
 
     while(buffer_can_read(&data->rbStruct)) {
 
@@ -208,7 +208,16 @@ unsigned readHandler(struct selector_key * key) {
     return data->stm.current->state;
 }
 
-
+void greetingHandler(const unsigned state, struct selector_key *key){
+	client_data * data = ATTACHMENT(key);
+    char buf[] = {"+OK POP3 server ready\r\n"};
+    for (int i = 0; buf[i] != '\0'; i++){
+        if (buffer_can_write(&data->wbStruct)){
+            buffer_write(&data->wbStruct,buf[i]);
+        }
+    }
+    return ;
+}
 
 unsigned writeHandler(struct selector_key *key){
     client_data * data = ATTACHMENT(key);
@@ -227,7 +236,13 @@ unsigned writeHandler(struct selector_key *key){
     }
 
     buffer_read_adv(&data->wbStruct, writeCount);
+
+   
+
     selector_set_interest_key(key, OP_READ);
+     if(buffer_can_read(&data->rbStruct)){
+        return readHandler(key);
+    }
 
     //if I can read more from buffer -> return UPDATE_STATE? no estoy seguro, tiene que seguir escribiendo
     return data->stm.current->state;
