@@ -4,8 +4,11 @@
 #define MAXPENDING 5
 #define BUFSIZE 256
 #define MAX_ADDR_BUFFER 128
+#define MAX_CONNECTIONS 1023
 
 static char addrBuffer[MAX_ADDR_BUFFER];
+
+static int max_connections = MAX_CONNECTIONS;
 
 static int setupSockAddr(char* addr, unsigned short port, void* res, socklen_t* socklenResult) {
   int ipv6 = strchr(addr, ':') != NULL;
@@ -181,7 +184,7 @@ void handleNewConnection(struct selector_key * key){
 		return;
 	}
 
-	if (clntSock > 1023) {
+	if (clntSock > max_connections) {
         close(clntSock);
         return;
     }
@@ -257,6 +260,10 @@ static fd_handler mgmt_handler = {
 	.handle_block = mgmt_block
 };
 
+void changeMaxConnections(int newMax){
+    max_connections = newMax;
+}
+
 void handleAdminConnection(struct selector_key * key){
     struct sockaddr_storage clntAddr;
     socklen_t clntAddrLen = sizeof(clntAddr);
@@ -266,7 +273,7 @@ void handleAdminConnection(struct selector_key * key){
         return;
     }
 
-    if (clntSock > 1023) {
+    if (clntSock > max_connections) {
         close(clntSock);
         return;
     }

@@ -77,4 +77,6 @@ void handleNewConnection(struct selector_key * key);
 
 void handleAdminConnection(struct selector_key * key);
 
+void changeMaxConnections(int newMax);
+
 #endif 
