@@ -52,9 +52,6 @@ typedef struct client_data{
 }client_data;
 
 typedef struct mgmt_data{
-    char * username;
-    bool * emailDeleted;
-    int emailCount;
     struct buffer rbStruct;
     struct buffer wbStruct;
     uint8_t rb[BUFFER_LEN];
@@ -63,7 +60,6 @@ typedef struct mgmt_data{
     int fd;
     struct parser * parser;
     struct command_data command;
-    struct email * emailptr;
 }mgmt_data;
 
 
@@ -76,5 +72,9 @@ int setupTCPServerSocket(const int service);
 void handleNewConnection(struct selector_key * key);
 
 void handleAdminConnection(struct selector_key * key);
+
+void changeMaxConnections(int newMax);
+void max_connections_reached(struct selector_key * key);
+void max_connections_write(struct selector_key * key);
 
 #endif 

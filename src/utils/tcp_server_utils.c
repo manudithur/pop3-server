@@ -4,8 +4,11 @@
 #define MAXPENDING 5
 #define BUFSIZE 256
 #define MAX_ADDR_BUFFER 128
+#define MAX_CONNECTIONS 1023
 
 static char addrBuffer[MAX_ADDR_BUFFER];
+
+static int max_connections = MAX_CONNECTIONS;
 
 static int setupSockAddr(char* addr, unsigned short port, void* res, socklen_t* socklenResult) {
   int ipv6 = strchr(addr, ':') != NULL;
@@ -155,19 +158,27 @@ static struct state_definition mgmt_states[] = {
         {
             .state = AUTH_MGMT,
             .on_read_ready = mgmt_readHandler,
-            .on_write_ready = mgmt_writeHandler
+            .on_write_ready = mgmt_writeHandler,
+            .on_arrival = NULL
         },
         {
             .state = ACTIVE_MGMT,
             .on_read_ready = mgmt_readHandler,
-            .on_write_ready = mgmt_writeHandler
+            .on_write_ready = mgmt_writeHandler,
+            .on_arrival = NULL
         },
         {
             .state = ERROR_MGMT,
             .on_read_ready = mgmt_readHandler,
-            .on_write_ready = mgmt_errorHandler
+            .on_write_ready = mgmt_errorHandler,
+            .on_arrival = NULL
         }
 };
+
+void changeMaxConnections(int newMax){
+    max_connections = newMax;
+}
+
 
 void handleNewConnection(struct selector_key * key){
 
@@ -181,7 +192,16 @@ void handleNewConnection(struct selector_key * key){
 		return;
 	}
 
-	if (clntSock > 1023) {
+    struct client_data * client = calloc(1, sizeof(struct client_data));
+    client->stm.states = states;
+    client->stm.initial = AUTH_STATE;
+    client->stm.max_state = ERROR_STATE;
+    stm_init(&client->stm);
+    buffer_init(&client->rbStruct, BUFFER_LEN, client->rb);
+    buffer_init(&client->wbStruct, BUFFER_LEN, client->wb);
+
+	if (clntSock > max_connections) {
+//        max_connections_reached(key);
         close(clntSock);
         return;
     }
@@ -192,24 +212,19 @@ void handleNewConnection(struct selector_key * key){
 	printSocketAddress((struct sockaddr *) &clntAddr, addrBuffer);
 	log(INFO, "Handling client %s", addrBuffer);
 
-	struct client_data * client = calloc(1, sizeof(struct client_data));
 	if(client == NULL){
 		close(clntSock);
 		return;
 	}
 
-	buffer_init(&client->rbStruct, BUFFER_LEN, client->rb);
-	buffer_init(&client->wbStruct, BUFFER_LEN, client->wb);
+
 	client->fd = clntSock;
-	client->stm.initial = AUTH_STATE;
-	client->stm.max_state = ERROR_STATE;
     client->parser = parser_init(parser_no_classes(),&definition);
 
     client->username = NULL;
     client->emailptr = NULL;
 
-	client->stm.states = states;
-	stm_init(&client->stm);
+
 
 	int register_status = selector_register(key->s, clntSock, &pop3_handler, OP_READ, client);
 
@@ -257,6 +272,38 @@ static fd_handler mgmt_handler = {
 	.handle_block = mgmt_block
 };
 
+//void max_connections_reached(struct selector_key * key){
+//    client_data * data = ATTACHMENT(key);
+//    printf("MAX CONNECTIONS REACHfefsaED\n");
+//    char buf[1000] = {'\0'};
+//    sprintf(buf, "-ERR MAX CONNECTIONS REACHED\n");
+//    for (int i = 0; buf[i] != '\0'; i++){
+//        if (buffer_can_write(&data->wbStruct)){
+//            buffer_write(&data->wbStruct,buf[i]);
+//        }
+//    }
+//    max_connections_write(key);
+//}
+//
+//void max_connections_write(struct selector_key * key){
+//    client_data * data = ATTACHMENT(key);
+//
+//    size_t writeLimit;
+//    ssize_t writeCount;
+//    uint8_t* writeBuffer;
+//
+//    writeBuffer = buffer_read_ptr(&data->wbStruct, &writeLimit);
+//    writeCount = send(data->fd, writeBuffer, writeLimit, MSG_NOSIGNAL);
+//    stats_update(writeCount,0,0);
+//
+//    if (writeCount <= 0) {
+//        printf("error en write\n");
+//        return;
+//    }
+//
+//    buffer_read_adv(&data->wbStruct, writeCount);
+//}
+
 void handleAdminConnection(struct selector_key * key){
     struct sockaddr_storage clntAddr;
     socklen_t clntAddrLen = sizeof(clntAddr);
@@ -266,7 +313,16 @@ void handleAdminConnection(struct selector_key * key){
         return;
     }
 
-    if (clntSock > 1023) {
+    struct mgmt_data * client = calloc(1, sizeof(struct mgmt_data));
+    client->stm.initial = AUTH_MGMT;
+    client->stm.max_state = ERROR_MGMT;
+    client->stm.states = mgmt_states;
+    stm_init(&client->stm);
+    buffer_init(&client->rbStruct, BUFFER_LEN, client->rb);
+    buffer_init(&client->wbStruct, BUFFER_LEN, client->wb);
+
+    if (clntSock > MAX_CONNECTIONS) {
+//        max_connections_reached(key);
         close(clntSock);
         return;
     }
@@ -278,20 +334,13 @@ void handleAdminConnection(struct selector_key * key){
 
     printSocketAddress((struct sockaddr *) &clntAddr, addrBuffer);
 
-    struct mgmt_data * client = calloc(1, sizeof(struct client_data));
     if(client == NULL){
         close(clntSock);
         return;
     }
 
-    buffer_init(&client->rbStruct, BUFFER_LEN, client->rb);
-    buffer_init(&client->wbStruct, BUFFER_LEN, client->wb);
     client->fd = clntSock;
     client->parser = parser_init(parser_no_classes(),&definition);
-    client->stm.initial = AUTH_MGMT;
-    client->stm.max_state = ERROR_MGMT;
-    client->stm.states = mgmt_states;
-    stm_init(&client->stm);
 
     int register_status = selector_register(key->s, clntSock, &mgmt_handler, OP_READ, client);
 

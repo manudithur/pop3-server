@@ -6,10 +6,10 @@ typedef struct commands{
     unsigned (*action)(selector_key * key);
 }commands;
 
-static unsigned lastValidState = AUTH_STATE;
+static unsigned lastValidState = AUTH_MGMT;
 
 static const commands command_list_auth[AUTH_COMMAND_AMOUNT] = {
-    {.command_name = "PASS",  .action = mgmt_pass_handler },                                       
+    {.command_name = "PASS",  .action = mgmt_pass_handler },
     {.command_name = "USER",  .action = mgmt_user_handler },                                         
     {.command_name = "QUIT", .action = mgmt_quit_handler},                                
     {.command_name = "CAPA", .action = mgmt_capa_handler}
@@ -24,7 +24,7 @@ static const commands command_list_transaction[ACTIVE_MGMT_COMMAND_AMOUNT] = {
     // {.command_name = "USERS",  .action = mgmt_users_handler},                                 
     // {.command_name = "STATUS",  .action = mgmt_status_handler},                                 
     // {.command_name = "MAX_USERS",  .action = mgmt_max_users_handler},
-    // {.command_name = "MAX_CONNECTIONS",  .action = mgmt_max_connections_handler}, 
+     {.command_name = "MAX_CONNECTIONS",  .action = mgmt_max_connections_handler}
     // {.command_name = "TIMEOUT",  .action = mgmt_timeout_handler}, 
     // {.command_name = "DELETE_USER",  .action = mgmt_delete_user_handler}, 
     // {.command_name = "ADD_USER",  .action = mgmt_add_user_handler},       
@@ -68,7 +68,7 @@ unsigned mgmt_readHandler(struct selector_key * key) {
     stats_update(0,readCount,0);
 
     if (readCount <= 0) {
-        return -1;
+        return ERROR_MGMT;
     }
 
     buffer_write_adv(&data->rbStruct, readCount);
@@ -152,7 +152,6 @@ unsigned mgmt_writeHandler(struct selector_key *key){
     selector_set_interest_key(key, OP_READ);
 //
 
-    //if I can read more from buffer -> return UPDATE_STATE? no estoy seguro, tiene que seguir escribiendo
     return data->stm.current->state;
 }
 
