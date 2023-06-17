@@ -52,4 +52,6 @@ unsigned mgmt_quit_handler(selector_key *key);
 
 unsigned mgmt_capa_handler(selector_key *key);
 
+void applyTimeout(int time);
+
 #endif

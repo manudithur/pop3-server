@@ -25,7 +25,7 @@ static const commands command_list_transaction[ACTIVE_MGMT_COMMAND_AMOUNT] = {
     {.command_name = "STATUS",  .action = mgmt_status_handler},                                 
     {.command_name = "MAX_USERS",  .action = mgmt_max_users_handler},
      {.command_name = "MAX_CONNEC",  .action = mgmt_max_connections_handler},
-    // {.command_name = "TIMEOUT",  .action = mgmt_timeout_handler}, 
+     {.command_name = "TIMEOUT",  .action = mgmt_timeout_handler},
     {.command_name = "DELETE_USER",  .action = mgmt_delete_user_handler}, 
     {.command_name = "ADD_USER",  .action = mgmt_add_user_handler},       
     {.command_name = "RESET_USER_PASSWORD",  .action = mgmt_reset_user_password_handler}, 

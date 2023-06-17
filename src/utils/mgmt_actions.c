@@ -192,7 +192,28 @@ unsigned mgmt_max_users_handler(selector_key *key){
      return data->stm.current->state;
 }
 
-// unsigned mgmt_timeout_handler(selector_key *key);
+void applyTimeout(int time){
+    sleep(time);
+}
+
+ unsigned mgmt_timeout_handler(selector_key *key){
+     client_data * data = ATTACHMENT(key);
+     if (data->command.arg2[0] != '\0' || isNumber(data->command.arg1) == false){
+         return ERROR_MGMT;
+     }
+     int timeoutTime = atoi(data->command.arg1);
+     applyTimeout(timeoutTime);
+
+     char buf[1000] = {'\0'};
+     sprintf(buf, "+OK TIMEOUT COMPLETED\n");
+     for (int i = 0; buf[i] != '\0'; i++){
+         if (buffer_can_write(&data->wbStruct)){
+             buffer_write(&data->wbStruct,buf[i]);
+         }
+     }
+
+     return data->stm.current->state;
+}
 
 unsigned mgmt_delete_user_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
