@@ -79,4 +79,6 @@ void handleAdminConnection(struct selector_key * key);
 
 void changeMaxConnections(int newMax);
 
+void maxConnectionsReached(int clntSock);
+
 #endif 

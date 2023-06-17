@@ -4,7 +4,8 @@
 #define MAXPENDING 5
 #define BUFSIZE 256
 #define MAX_ADDR_BUFFER 128
-#define MAX_CONNECTIONS 1023
+//#define MAX_CONNECTIONS 1023
+#define MAX_CONNECTIONS 0
 
 static char addrBuffer[MAX_ADDR_BUFFER];
 
@@ -185,6 +186,7 @@ void handleNewConnection(struct selector_key * key){
 	}
 
 	if (clntSock > max_connections) {
+        maxConnectionsReached(clntSock);
         close(clntSock);
         return;
     }
@@ -260,8 +262,13 @@ static fd_handler mgmt_handler = {
 	.handle_block = mgmt_block
 };
 
+//TODO: verificar q el numero este bien y devolver int
 void changeMaxConnections(int newMax){
     max_connections = newMax;
+}
+
+void maxConnectionsReached(int clntSock){
+    dprintf(clntSock, "-ERR MAX CONNECTIONS REACHED\n");
 }
 
 void handleAdminConnection(struct selector_key * key){
@@ -274,6 +281,7 @@ void handleAdminConnection(struct selector_key * key){
     }
 
     if (clntSock > max_connections) {
+        maxConnectionsReached(clntSock);
         close(clntSock);
         return;
     }
