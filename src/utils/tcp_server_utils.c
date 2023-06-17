@@ -4,8 +4,8 @@
 #define MAXPENDING 5
 #define BUFSIZE 256
 #define MAX_ADDR_BUFFER 128
-//#define MAX_CONNECTIONS 1023
-#define MAX_CONNECTIONS 0
+#define MAX_CONNECTIONS 1023
+//#define MAX_CONNECTIONS 0
 
 static char addrBuffer[MAX_ADDR_BUFFER];
 
@@ -216,7 +216,9 @@ void handleNewConnection(struct selector_key * key){
 	client->stm.states = states;
 	stm_init(&client->stm);
 
-	int register_status = selector_register(key->s, clntSock, &pop3_handler, OP_READ, client);
+    dprintf(client->fd, "+OK POP3 server ready\r\n");
+
+    int register_status = selector_register(key->s, clntSock, &pop3_handler, OP_READ, client);
 
 	if(register_status != SELECTOR_SUCCESS){
 		close(clntSock);
@@ -268,8 +270,9 @@ void changeMaxConnections(int newMax){
 }
 
 void maxConnectionsReached(int clntSock){
-    dprintf(clntSock, "-ERR MAX CONNECTIONS REACHED\n");
+    dprintf(clntSock, "-ERR MAX CONNECTIONS REACHED\r\n");
 }
+
 
 void handleAdminConnection(struct selector_key * key){
     struct sockaddr_storage clntAddr;
@@ -307,6 +310,8 @@ void handleAdminConnection(struct selector_key * key){
     client->stm.max_state = ERROR_MGMT;
     client->stm.states = mgmt_states;
     stm_init(&client->stm);
+
+    dprintf(client->fd, "+OK Management server ready\r\n");
 
     int register_status = selector_register(key->s, clntSock, &mgmt_handler, OP_READ, client);
 
