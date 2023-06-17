@@ -8,7 +8,7 @@ typedef struct commands{
 
 static unsigned lastValidState = AUTH_STATE;
 
-static const commands command_list_auth[AUTH_COMMAND_AMOUNT] = {
+static const commands command_list_auth[MGMT_AUTH_COMMAND_AMOUNT] = {
     {.command_name = "PASS",  .action = mgmt_pass_handler },                                       
     {.command_name = "USER",  .action = mgmt_user_handler },                                         
     {.command_name = "QUIT", .action = mgmt_quit_handler},                                
@@ -21,16 +21,16 @@ static const commands command_list_transaction[ACTIVE_MGMT_COMMAND_AMOUNT] = {
     {.command_name = "HISTORIC_CONEC",  .action = mgmt_historic_handler},                                 
     {.command_name = "LIVE_CONEC",  .action = mgmt_live_handler},
     {.command_name = "BYTES_TRANS",  .action = mgmt_bytes_handler},                                 
-    // {.command_name = "USERS",  .action = mgmt_users_handler},                                 
-    // {.command_name = "STATUS",  .action = mgmt_status_handler},                                 
-    // {.command_name = "MAX_USERS",  .action = mgmt_max_users_handler},
+    {.command_name = "USERS",  .action = mgmt_users_handler},                                 
+    {.command_name = "STATUS",  .action = mgmt_status_handler},                                 
+    {.command_name = "MAX_USERS",  .action = mgmt_max_users_handler},
     // {.command_name = "MAX_CONNECTIONS",  .action = mgmt_max_connections_handler}, 
     // {.command_name = "TIMEOUT",  .action = mgmt_timeout_handler}, 
-    // {.command_name = "DELETE_USER",  .action = mgmt_delete_user_handler}, 
-    // {.command_name = "ADD_USER",  .action = mgmt_add_user_handler},       
-    // {.command_name = "RESET_USER_PASSWORD",  .action = mgmt_reset_user_password_handler}, 
-    // {.command_name = "CHANGE_PASSWORD",  .action = mgmt_change_password_handler},                             
-    // {.command_name = "CAPA",  .action = mgmt_capa_handler}
+    {.command_name = "DELETE_USER",  .action = mgmt_delete_user_handler}, 
+    {.command_name = "ADD_USER",  .action = mgmt_add_user_handler},       
+    {.command_name = "RESET_USER_PASSWORD",  .action = mgmt_reset_user_password_handler}, 
+    {.command_name = "CHANGE_PASSWORD",  .action = mgmt_change_password_handler},                             
+    {.command_name = "CAPA",  .action = mgmt_capa_handler}
 };
 
 static unsigned mgmt_check_commands(struct selector_key * key, const commands * command_list, int command_amount){
@@ -95,10 +95,10 @@ unsigned mgmt_readHandler(struct selector_key * key) {
           
             switch(data->stm.current->state){
                 case ACTIVE_MGMT:
-                    retState =  mgmt_check_commands(key, command_list_transaction, TRANSACTION_COMMAND_AMOUNT);
+                    retState =  mgmt_check_commands(key, command_list_transaction, ACTIVE_MGMT_COMMAND_AMOUNT);
                     break;
                 case AUTH_MGMT:
-                    retState =  mgmt_check_commands(key, command_list_auth, AUTH_COMMAND_AMOUNT);
+                    retState =  mgmt_check_commands(key, command_list_auth, MGMT_AUTH_COMMAND_AMOUNT);
                     break;
             }
             

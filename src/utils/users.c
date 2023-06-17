@@ -3,9 +3,10 @@
 #include <string.h>
 #include <stdio.h>
 
-static TUser * users;
-static int count;
+static TUsers * usersStruct;
 static int INITIALIZED = 0;
+
+static int MAX_USERS = 10;
 
 // Inicializa la estructura de usuarios
 void initUsers(){
@@ -13,12 +14,36 @@ void initUsers(){
         return;
     
     INITIALIZED = 1;
+    
+    usersStruct = malloc(sizeof(TUsers));
 
-    users = malloc(sizeof(TUser) * MAX_USERS);
-    count = 0;
+    usersStruct->users = malloc(sizeof(TUser) * MAX_USERS);
+    usersStruct->count = 0;
 
     addUser("admin", "admin");
-    users[0].isAdmin = ADMIN_USER;
+    usersStruct->users[0].isAdmin = ADMIN_USER;
+}
+
+// Elimina a un usuario
+int deleteUser(char * username){
+    printf("DELETE USER\n");
+    printf("USERNAME: %s\n", username);
+    printf("COUNT: %d\n", usersStruct->count);
+    for(int i = 0; i < usersStruct->count; i++){
+        if(strcmp(usersStruct->users[i].username, username) == 0){
+            printf("FOUND\n");
+            if(usersStruct->users[i].isAdmin == ADMIN_USER)
+                return ADMIN_DELETE_ATTEMPT;
+
+            for(int j = i; j < usersStruct->count - 1; j++){
+                usersStruct->users[j] = usersStruct->users[j+1];
+            }
+            usersStruct->count--;
+            return USER_DELETED;
+        }
+    }
+
+    return USER_NOT_FOUND;
 }
 
 // Agrega un usuario a la estructura
@@ -27,17 +52,17 @@ int addUser(char * username, char * password){
         return INVALID_CREDENTIALS;
 
     //Cantidad maxima de usuarios alcanzada
-    if(count == MAX_USERS)
+    if(usersStruct->count == MAX_USERS)
         return MAX_USERS_REACHED;
 
     if(getUserByUsername(username) == USER_FOUND)
         return USER_ALREADY_EXISTS;
 
-    strncpy(users[count].username, username, strlen(username)+1);
-    strncpy(users[count].password, password, strlen(password)+1);
-    users[count].isAdmin = STANDARD_USER;
+    strncpy(usersStruct->users[usersStruct->count].username, username, strlen(username)+1);
+    strncpy(usersStruct->users[usersStruct->count].password, password, strlen(password)+1);
+    usersStruct->users[usersStruct->count].isAdmin = STANDARD_USER;
 
-    count++;
+    usersStruct->count++;
     return USER_ADDED;
 }
 
@@ -46,8 +71,8 @@ int getUserByUsername(char * username){
     if(username == NULL)
         return USER_NOT_FOUND;
 
-    for(int i = 0; i < count; i++)
-        if(strcmp(users[i].username, username) == 0)
+    for(int i = 0; i < usersStruct->count; i++)
+        if(strcmp(usersStruct->users[i].username, username) == 0)
             return USER_FOUND;
 
     return USER_NOT_FOUND;
@@ -58,8 +83,8 @@ int validateAdminUser(char * username){
         return INVALID_CREDENTIALS;
     }
 
-    for(int i = 0 ; i < count; i ++){
-        if(strcmp(users[i].username, username) == 0 && users[i].isAdmin == ADMIN_USER)
+    for(int i = 0 ; i < usersStruct->count; i ++){
+        if(strcmp(usersStruct->users[i].username, username) == 0 && usersStruct->users[i].isAdmin == ADMIN_USER)
             return VALID_CREDENTIALS;
     }
 
@@ -74,9 +99,9 @@ int validateAdminCredentials(char * username, char * password){
     printf("username: %s\n", username);
     printf("password: %s\n", password);
 
-    for(int i = 0; i < count; i++){
-        printf("Is admin: %s\n", users[i].isAdmin == ADMIN_USER ? "TRUE" : "FALSE");
-        if(strcmp(users[i].username, username) == 0 && strcmp(users[i].password, password) == 0 && users[i].isAdmin == ADMIN_USER)
+    for(int i = 0; i < usersStruct->count; i++){
+        printf("Is admin: %s\n", usersStruct->users[i].isAdmin == ADMIN_USER ? "TRUE" : "FALSE");
+        if(strcmp(usersStruct->users[i].username, username) == 0 && strcmp(usersStruct->users[i].password, password) == 0 && usersStruct->users[i].isAdmin == ADMIN_USER)
             return VALID_CREDENTIALS;
     }
 
@@ -88,8 +113,8 @@ int validateUser(char * username){
         return INVALID_CREDENTIALS;
     }
 
-    for(int i = 0 ; i < count; i ++){
-        if(strcmp(users[i].username, username) == 0 )
+    for(int i = 0 ; i < usersStruct->count; i ++){
+        if(strcmp(usersStruct->users[i].username, username) == 0 )
             return VALID_CREDENTIALS;
     }
 
@@ -101,8 +126,8 @@ int validateUserCredentials(char * username, char * password){
     if(username[0] == '\0'|| password[0] == '\0')
         return INVALID_CREDENTIALS;
 
-    for(int i = 0; i < count; i++)
-        if(strcmp(users[i].username, username) == 0 && strcmp(users[i].password, password) == 0)
+    for(int i = 0; i < usersStruct->count; i++)
+        if(strcmp(usersStruct->users[i].username, username) == 0 && strcmp(usersStruct->users[i].password, password) == 0)
             return VALID_CREDENTIALS;
 
     return INVALID_CREDENTIALS;
@@ -113,16 +138,45 @@ int changePassword(char * username, char * oldPassword, char * newPassword){
     if(username == NULL || oldPassword == NULL || newPassword == NULL)
         return PASSWORD_CHANGE_FAILED;
 
-    for(int i = 0; i < count; i++)
-        if(strcmp(users[i].username, username) == 0 && strcmp(users[i].password, oldPassword) == 0){
-            strncpy(users[i].password, newPassword, strlen(newPassword)+1);
+    for(int i = 0; i < usersStruct->count; i++)
+        if(strcmp(usersStruct->users[i].username, username) == 0 && strcmp(usersStruct->users[i].password, oldPassword) == 0){
+            strncpy(usersStruct->users[i].password, newPassword, strlen(newPassword)+1);
             return PASSWORD_CHANGED_SUCCESSFULLY;
         }
 
     return PASSWORD_CHANGE_FAILED;
 }
 
+// Cambia la cantidad maxima de usuarios
+int setMaxUsers(int maxUsers){
+    if(maxUsers < 0 || maxUsers < usersStruct->count)
+        return INVALID_MAX_USERS;
+
+    MAX_USERS = maxUsers;
+    return MAX_USERS_CHANGED_SUCCESSFULLY;
+}
+
+// Resetea la contrasena de un usuario (password = username)
+int resetUserPassword(char * user){
+    if(user == NULL)
+        return PASSWORD_CHANGE_FAILED;
+
+    for(int i = 0; i < usersStruct->count; i++)
+        if(strcmp(usersStruct->users[i].username, user) == 0){
+            strncpy(usersStruct->users[i].password, user, strlen(user)+1);
+            return PASSWORD_CHANGED_SUCCESSFULLY;
+        }
+
+    return PASSWORD_CHANGE_FAILED;
+}
+
+// Retorna la estructura de usuarios
+TUsers * getUsers(){
+    return usersStruct;
+}
+
 // Libera toda la memoria utilizada por Users
 void destroyUsers(){
-    free(users);
+    free(usersStruct->users);
+    free(usersStruct);
 }

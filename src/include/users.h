@@ -2,7 +2,6 @@
 #define USERS_H_
 
 #define MAX_FIELD_SIZE 30
-#define MAX_USERS 10
 
 #define VALID_CREDENTIALS 1
 #define INVALID_CREDENTIALS 0
@@ -15,6 +14,9 @@
 #define USER_NOT_FOUND -1
 #define USER_FOUND 1
 
+#define ADMIN_DELETE_ATTEMPT -2
+#define USER_DELETED 1
+
 #define TOKEN_UPDATED_SUCCESSFULLY 1
 #define TOKEN_UPDATE_FAILED -1
 
@@ -24,17 +26,28 @@
 #define PASSWORD_CHANGED_SUCCESSFULLY 1
 #define PASSWORD_CHANGE_FAILED -1
 
+#define INVALID_MAX_USERS -1
+#define MAX_USERS_CHANGED_SUCCESSFULLY 1
+
 typedef struct{
     char username[MAX_FIELD_SIZE];
     char password[MAX_FIELD_SIZE];
     int  isAdmin;
 } TUser;
 
+typedef struct{
+    TUser * users;
+    int count;
+}TUsers;
+
 // Inicializa la estructura de usuarios
 void initUsers();
 
 // Agrega un usuario a la estructura
 int addUser(char * username, char * password);
+
+// Elimina a un usuario
+int deleteUser(char * username);
 
 // Valida que el nombre de usuario exista y que sea administrador
 int validateAdminUser(char * username);
@@ -53,6 +66,15 @@ int getUserByUsername(char * username);
 
 // Cambia la contrasena de un usuario
 int changePassword(char * username, char * oldPassword, char * newPassword);
+
+// Actualiza la cantidad maxima de usuarios
+int setMaxUsers(int maxUsers);
+
+// Resetea la contrasena de un usuario (password = username)
+int resetUserPassword(char * user);
+
+// Retorna la estructura de usuarios
+TUsers * getUsers();
 
 // Libera toda la memoria utilizada por Users
 void destroyUsers();
