@@ -69,7 +69,7 @@
 
 void 
 invalidUserFormat(){
-    fprintf(stderr, "Invalid format.\n -u user:pass \n");
+    fprintf(stderr, "Invalid format.\nip port -u user:pass \n");
     exit(1);
 }
 

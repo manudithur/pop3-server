@@ -51,7 +51,16 @@ int main(int argc , char *argv[]){
 
 
     initUsers();
-    parseAndAddUsers(argc-1, argv+1);
+    char * ip = (argv+1)[0];
+    char * port = (argv+2)[0];
+    if (strcmp(ip, "localhost") == 0)
+        ip = "::FFFF:127.0.0.1";
+    if (!isIp(ip) || !isPort(port)) {
+        fprintf(stderr, "Invalid IP or invalid port\nFormat: ip port -u user:pass\n");
+        exit(1);
+    }
+    int portNumber = atoi(port);
+    parseAndAddUsers(argc-3, argv+3);
     stats_init();
     signal(SIGTERM, sigterm_handler);
     signal(SIGINT, sigterm_handler);
@@ -68,7 +77,7 @@ int main(int argc , char *argv[]){
     }
 
     //POP3 Server socket
-    int serverSocket = setupTCPServerSocket(POP3_PORT);
+    int serverSocket = setupTCPServerSocket(ip, portNumber);
 
     fd_handler socket_handler = {
         .handle_read = handleNewConnection,
@@ -85,7 +94,7 @@ int main(int argc , char *argv[]){
 
 
     //Management socket
-    int mgmtSocket = setupTCPServerSocket(MGMT_PORT);
+    int mgmtSocket = setupTCPServerSocket(ip,MGMT_PORT);
     fd_handler mgmt_handler = {
             .handle_read = handleAdminConnection,
             .handle_write = NULL,
@@ -114,3 +123,4 @@ int main(int argc , char *argv[]){
 
     return 0;
 }
+
