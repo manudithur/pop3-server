@@ -1,5 +1,5 @@
-#ifndef _CONTROLLER_H_
-#define _CONTROLLER_H_
+#ifndef _ADMIN_CONTROLLER_H_
+#define _ADMIN_CONTROLLER_H_
 
 
 #define COMMAND_COUNT  13

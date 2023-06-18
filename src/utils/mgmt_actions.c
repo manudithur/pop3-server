@@ -5,7 +5,7 @@
 
 unsigned mgmt_user_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
-    char buf[] = {"+OK USER\n\r\n"};
+    char buf[] = {"+OK USER\r\n"};
     if (validateAdminUser(data->command.arg1) != VALID_CREDENTIALS || data->command.arg2[0] != '\0'){
         return ERROR_MGMT;
     }
@@ -22,7 +22,7 @@ unsigned mgmt_user_handler(selector_key *key){
 
 unsigned mgmt_pass_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
-    char buf[] = {"+OK PASS\n\r\n"};
+    char buf[] = {"+OK PASS\r\n"};
     if (data->username == NULL || validateAdminCredentials(data->username, data->command.arg1) != VALID_CREDENTIALS || data->command.arg2[0] != '\0'){
         return ERROR_MGMT;
     }
@@ -61,8 +61,8 @@ unsigned mgmt_quit_handler(selector_key *key){
 
 unsigned mgmt_capa_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
-    char bud[] = {"+OK CAPA\n\nNOOP\nQUIT\nHISTORIC_CONEC\nLIVE_CONEC\nBYTES_TRANS\nUSERS\nSTATUS\nMAX_USERS <int>\nDELETE_USER <username>\nADD_USER <username> <password>\nRESET_USER_PASSWORD <username>\nCHANGE_PASSWORD <oldPassword> <newPassword>\r\n"};
-    char buf[] = {"+OK CAPA\n\nUSER\nPASS\nQUIT\nCAPA\nLIST\nRETR\nSTAT\nDELE\nNOOP\nRSET\n\r\n"};
+    char buf[] = {"+OK CAPA\nNOOP\nQUIT\nHISTORIC_CONEC\nLIVE_CONEC\nBYTES_TRANS\nUSERS\nSTATUS\nMAX_USERS <int>\nDELETE_USER <username>\nADD_USER <username> <password>\nRESET_USER_PASSWORD <username>\nCHANGE_PASSWORD <oldPassword> <newPassword>\r\n"};
+    //char buf[] = {"+OK CAPA\nUSER\nPASS\nQUIT\nCAPA\nLIST\nRETR\nSTAT\nDELE\nNOOP\nRSET\r\n"};
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,buf[i]);
@@ -75,7 +75,7 @@ unsigned mgmt_historic_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
     // char buf[] = {"+OK HISTORIC_CONEC\nHISTORIC CONECTIONS = \r\n"};
     char buf[1000] = {'\0'};
-    sprintf(buf, "+OK HISTORIC_CONEC\n\nHISTORIC CONECTIONS = %ld\n\r\n", getTotalConnections());
+    sprintf(buf, "+OK HISTORIC_CONEC\nHISTORIC CONECTIONS = %ld\r\n", getTotalConnections());
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,buf[i]);
@@ -87,7 +87,7 @@ unsigned mgmt_historic_handler(selector_key *key){
 unsigned mgmt_live_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
     char buf[1000] = {'\0'};
-    sprintf(buf, "+OK LIVE_CONEC\n\nLIVE CONECTIONS = %ld\n\r\n", getConcurrentConnections());
+    sprintf(buf, "+OK LIVE_CONEC\nLIVE CONECTIONS = %ld\r\n", getConcurrentConnections());
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,buf[i]);
@@ -99,7 +99,7 @@ unsigned mgmt_live_handler(selector_key *key){
 unsigned mgmt_bytes_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
     char buf[1000] = {'\0'};
-    sprintf(buf, "+OK BYTES_TRANS\n\nBYTES SENT = %ld\nBYTES RECEIVED = %ld\n\r\n", getTotalBytesSent(), getTotalBytesReceived());
+    sprintf(buf, "+OK BYTES_TRANS\nBYTES SENT = %ld\nBYTES RECEIVED = %ld\r\n", getTotalBytesSent(), getTotalBytesReceived());
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,buf[i]);
@@ -112,12 +112,12 @@ unsigned mgmt_users_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
     TUsers * users = getUsers();
     char buf[5000] = {'\0'};
-    sprintf(buf, "+OK USERS\n\nUSER COUNT: %d\n\nUSER LIST:\n", users->count);
+    sprintf(buf, "+OK USERS\nUSER COUNT: %d\nUSER LIST:\n", users->count);
     for(int j = 0 ; j < users->count ; j++){
         sprintf(buf + strlen(buf), "%s\n", users->users[j].username);
     }
 
-    sprintf(buf + strlen(buf), "\n\r\n");
+    sprintf(buf + strlen(buf), "\r\n");
 
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
@@ -131,10 +131,10 @@ unsigned mgmt_status_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
     TUsers * users = getUsers();
     char buf[5000] = {'\0'};
-    sprintf(buf, "+OK STATUS\n\nBYTES SENT = %ld\nBYTES RECEIVED = %ld\n\n", getTotalBytesSent(), getTotalBytesReceived());
+    sprintf(buf, "+OK STATUS\nBYTES SENT = %ld\nBYTES RECEIVED = %ld\n", getTotalBytesSent(), getTotalBytesReceived());
     sprintf(buf + strlen(buf), "LIVE CONECTIONS = %ld\n", getConcurrentConnections());
-    sprintf(buf + strlen(buf), "HISTORIC CONECTIONS = %ld\n\n", getTotalConnections());
-    sprintf(buf + strlen(buf), "TOTAL USERS = %ld\n\r\n", users->count);
+    sprintf(buf + strlen(buf), "HISTORIC CONECTIONS = %ld\n", getTotalConnections());
+    sprintf(buf + strlen(buf), "TOTAL USERS = %ld\r\n", users->count);
 
     //Agregar la data de la configuracion.
 
@@ -153,7 +153,7 @@ unsigned mgmt_max_users_handler(selector_key *key){
         return ERROR_MGMT;
 
     char buf[1000] = {'\0'};
-    sprintf(buf, "+OK MAX_USERS\n\n");
+    sprintf(buf, "+OK MAX_USERS\n");
     int maxUsers = setMaxUsers(atoi(data->command.arg1));
 
     if(maxUsers == MAX_USERS_CHANGED_SUCCESSFULLY)
@@ -162,7 +162,7 @@ unsigned mgmt_max_users_handler(selector_key *key){
         sprintf(buf + strlen(buf), "INVALID MAX USERS\n");
     }
     
-    sprintf(buf + strlen(buf), "\n\r\n");
+    sprintf(buf + strlen(buf), "\r\n");
 
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
@@ -217,7 +217,7 @@ unsigned mgmt_delete_user_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
     
     char buf[1000] = {'\0'};
-    sprintf(buf, "+OK DELETE_USER\n\n");
+    sprintf(buf, "+OK DELETE_USER\n");
     int deleteRes = deleteUser(data->command.arg1);
     printf("deleteRes: %d\n", deleteRes);
     if(deleteRes == USER_DELETED)
@@ -228,7 +228,7 @@ unsigned mgmt_delete_user_handler(selector_key *key){
         sprintf(buf + strlen(buf), "ADMIN CANNOT BE DELETED\n");
 
     
-    sprintf(buf + strlen(buf), "\n\r\n");
+    sprintf(buf + strlen(buf), "\r\n");
 
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
@@ -243,7 +243,7 @@ unsigned mgmt_add_user_handler(selector_key *key){
     
     char buf[1000] = {'\0'};
 
-    sprintf(buf, "+OK ADD_USER\n\n");
+    sprintf(buf, "+OK ADD_USER\n");
     int addRes = addUser(data->command.arg1, data->command.arg2);
 
     if(addRes == USER_ADDED)
@@ -255,7 +255,7 @@ unsigned mgmt_add_user_handler(selector_key *key){
     else if(addRes == INVALID_CREDENTIALS)
         sprintf(buf + strlen(buf), "INVALID CREDENTIALS\n");
     
-    sprintf(buf + strlen(buf), "\n\r\n");
+    sprintf(buf + strlen(buf), "\r\n");
 
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
@@ -270,7 +270,7 @@ unsigned mgmt_reset_user_password_handler(selector_key *key){
     
     char buf[1000] = {'\0'};
 
-    sprintf(buf, "+OK RESET_USER_PASSWORD\n\n");
+    sprintf(buf, "+OK RESET_USER_PASSWORD\n");
     int resetRes = resetUserPassword(data->command.arg1);
 
     if(resetRes == PASSWORD_CHANGED_SUCCESSFULLY)
@@ -278,7 +278,7 @@ unsigned mgmt_reset_user_password_handler(selector_key *key){
     else if(resetRes == PASSWORD_CHANGE_FAILED)
         sprintf(buf + strlen(buf), "USER NOT FOUND\n");
     
-    sprintf(buf + strlen(buf), "\n\r\n");
+    sprintf(buf + strlen(buf), "\r\n");
 
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
@@ -293,7 +293,7 @@ unsigned mgmt_change_password_handler(selector_key *key){
     
     char buf[1000] = {'\0'};
 
-    sprintf(buf, "+OK CHANGE_PASSWORD\n\n");
+    sprintf(buf, "+OK CHANGE_PASSWORD\n");
     int changeRes = changePassword(data->username, data->command.arg1, data->command.arg2);
 
     if(changeRes == PASSWORD_CHANGED_SUCCESSFULLY)
@@ -301,7 +301,7 @@ unsigned mgmt_change_password_handler(selector_key *key){
     else if(changeRes == PASSWORD_CHANGE_FAILED)
         sprintf(buf + strlen(buf), "PASSWORD CHANGE FAILED\n");
     
-    sprintf(buf + strlen(buf), "\n\r\n");
+    sprintf(buf + strlen(buf), "\r\n");
 
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
