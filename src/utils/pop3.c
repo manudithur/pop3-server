@@ -132,8 +132,8 @@ unsigned readHandler(struct selector_key * key) {
         readBuffer = buffer_write_ptr(&data->rbStruct, &readLimit);
         readCount = recv(key->fd, readBuffer, readLimit, 0);
         stats_update(0,readCount,0);
-        if (readCount <= 0) {
-        return -1;
+        if (readCount == 0) {
+            return UPDATE_STATE;
         }
         buffer_write_adv(&data->rbStruct, readCount);
     }

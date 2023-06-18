@@ -10,7 +10,6 @@ unsigned mgmt_user_handler(selector_key *key){
         return ERROR_MGMT;
     }
     data->username = NULL;
-    strcpy(data->username, data->command.arg1);
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,buf[i]);
