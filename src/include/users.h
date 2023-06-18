@@ -43,6 +43,9 @@ typedef struct{
 // Inicializa la estructura de usuarios
 void initUsers();
 
+// Inserta usuarios default
+void defaultUsers();
+
 // Agrega un usuario a la estructura
 int addUser(char * username, char * password);
 

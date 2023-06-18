@@ -76,11 +76,11 @@ invalidUserFormat(){
 void
 parseAndAddUsers(const int argc, char ** argv){
 
-    if(argc < 2)
-        invalidUserFormat();
-    
-    if(strcmp(argv[0], "-u") != 0)
-        invalidUserFormat();
+    if(argc < 2 || strcmp(argv[0], "-u") != 0){
+        defaultUsers();
+        return;
+    }
+
 
     for(int i = 1 ; i < argc ; i++){
         char *p = strchr(argv[i], ':');

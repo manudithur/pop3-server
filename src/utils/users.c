@@ -24,6 +24,13 @@ void initUsers(){
     usersStruct->users[0].isAdmin = ADMIN_USER;
 }
 
+void defaultUsers(){
+    addUser("user1", "user1");
+    addUser("user2", "user2");
+    addUser("user3", "user3");
+    addUser("user4", "user4");
+}
+
 // Elimina a un usuario
 int deleteUser(char * username){
     printf("DELETE USER\n");
