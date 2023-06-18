@@ -171,6 +171,7 @@ unsigned readHandler(struct selector_key * key) {
             }
             if(strcmp(data->command.command, "RETR") == 0 && retState != ERROR_STATE){
                 printf("entre al chequeo\n");
+                data->retrRunning = 1;
                 if(buffer_can_read(&data->wbStruct)){
                     selector_set_interest_key(key, OP_WRITE);
                 }else{
@@ -238,10 +239,15 @@ unsigned writeHandler(struct selector_key *key){
 
     buffer_read_adv(&data->wbStruct, writeCount);
 
-   
-
     selector_set_interest_key(key, OP_READ);
-     if(buffer_can_read(&data->rbStruct)){
+
+     if(data->retrRunning && !data->emailptr->done){
+         selector_set_interest(key->s, data->emailptr->email_fd, OP_READ);
+     }else if(data->retrRunning){
+         data->retrRunning =0;
+     }
+
+    if(buffer_can_read(&data->rbStruct)){
         return readHandler(key);
     }
 

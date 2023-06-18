@@ -73,7 +73,7 @@ unsigned user_handler(selector_key *key){
         closedir(dir);
     }
 
-    data->emailDeleted = calloc(1, sizeof(bool) * emailCount);  //inicializa todos los mails como no borrados
+    data->emailDeleted = calloc(1, sizeof(bool) * (emailCount + 1));  //inicializa todos los mails como no borrados
     data->emailCount = emailCount;
 
     return AUTH_STATE;
@@ -149,7 +149,7 @@ unsigned list_handler(selector_key *key){
     snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "cur/");
 
     //Decision de diseño: buffer de 5000 caracteres
-    char resultBuffer[BUFFER_LEN];
+    char resultBuffer[400];
 
     directory = opendir(dirPath);
     if (directory == NULL) {
@@ -187,7 +187,6 @@ void close_mail_handler(selector_key * key){
 
 void write_mail_handler(selector_key * key){
 
-
 }
 
 void block_mail_handler(selector_key * key){
@@ -196,7 +195,7 @@ void block_mail_handler(selector_key * key){
 fd_handler mail_handler ={
     .handle_read = read_mail_handler,
     .handle_close = close_mail_handler,
-    .handle_write = NULL, //Vamos a probar null primero y que use el otro
+    .handle_write = NULL, //write_mail_handler, //Vamos a probar null primero y que use el otro
     .handle_block = block_mail_handler
 };
 
@@ -205,9 +204,7 @@ fd_handler mail_handler ={
 void read_mail_handler(struct selector_key *key){
     
     email * email_data = ((email *)(key)->data);
-    
     buffer * mail_buffer = &email_data->bStruct;
-    //selector_set_interest(key->s, email_data->parent_fd, OP_READ);
     
     size_t readLimit;
     ssize_t readCount;    
@@ -219,46 +216,43 @@ void read_mail_handler(struct selector_key *key){
 
 
     if (readCount <= 0){
-    //    return -1;
+        printf("llegue\n");
+        buffer_write(email_data->pStruct, '\r');
+        buffer_write(email_data->pStruct, '\n');
+        buffer_write(email_data->pStruct, '.');
+        buffer_write(email_data->pStruct, '\r');
+        buffer_write(email_data->pStruct, '\n');
+        email_data->done = 1;
+        selector_set_interest(key->s, email_data->parent_fd, OP_WRITE);
+        selector_unregister_fd(key->s, email_data->email_fd);
         return;
     }
+
     //deberia preguntar si el otro puede escribir tambien?
-    while(buffer_can_read(mail_buffer)){
-        readBuffer=buffer_read_ptr(mail_buffer, &readLimit);
+    while(buffer_can_read(mail_buffer) && buffer_can_write(email_data->pStruct)){
+        readBuffer = buffer_read_ptr(mail_buffer, &readLimit);
         buffer_write(email_data->pStruct, *readBuffer); //escribo lo que lei en el buffer del padre
         buffer_read_adv(mail_buffer, 1);
     }
-    buffer_write(email_data->pStruct, '\r');
-    buffer_write(email_data->pStruct, '\n');
-    buffer_write(email_data->pStruct, '.');
-    buffer_write(email_data->pStruct, '\r');
-    buffer_write(email_data->pStruct, '\n');
-    //SOLO SI TERMINE DE ESCRIBIR EL MAIL, O SI NO HAY MAS LUGAR EN EL BUFFER DEL PADRE
-    //selector_set_interest_key(key, OP_NOOP);
-    
-    selector_set_interest(key->s, email_data->parent_fd, OP_WRITE);
 
-   // return TRANSACTION_STATE;
+    //SOLO SI TERMINE DE ESCRIBIR EL MAIL, O SI NO HAY MAS LUGAR EN EL BUFFER DEL PADRE
+    selector_set_interest_key(key, OP_NOOP);
+    selector_set_interest(key->s, email_data->parent_fd, OP_WRITE);
 }
 
 bool isNumber(const char* str) {
     if (str == NULL || *str == '\0') {
         return false;
     }
-
-
     while (*str != '\0' && *str >= '0' && *str <= '9') {
         ++str;
     }
-
-
     while (*str != '\0') {
         if (*str != ' ') {
             return false;
         }
         ++str;
     }
-
     return true;
 }
 
@@ -310,6 +304,7 @@ unsigned retr_handler(selector_key *key){
     email * email_data = malloc(sizeof(email));
     email_data->email_fd = open(filePath, O_RDONLY);
     email_data->parent_fd = data->fd;
+    email_data->done = 0;
     email_data->pStruct = &data->wbStruct;
     if (stat(filePath, &fileStat) == 0) {  
             if (S_ISREG(fileStat.st_mode)) {
@@ -325,11 +320,10 @@ unsigned retr_handler(selector_key *key){
         }
     }
 
-
     data->emailptr = email_data;
     buffer_init(&email_data->bStruct, BUFFER_LEN, email_data->buffer);
 
-    selector_register(key->s, email_data->email_fd, &mail_handler, OP_READ, email_data);
+    selector_register(key->s, email_data->email_fd, &mail_handler, OP_NOOP, email_data);
 
     //como llamo al read_mail_handler?? => calculo que se llama solo porque el fd va a estar llenisimo por el mail
     return data->stm.current->state;

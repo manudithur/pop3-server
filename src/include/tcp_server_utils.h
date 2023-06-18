@@ -49,6 +49,7 @@ typedef struct client_data{
     struct parser * parser;
     struct command_data command;
     struct email * emailptr;
+    int retrRunning;
 }client_data;
 
 typedef struct mgmt_data{

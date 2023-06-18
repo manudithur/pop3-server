@@ -220,6 +220,7 @@ void handleNewConnection(struct selector_key * key){
 
     client->username = NULL;
     client->emailptr = NULL;
+    client->retrRunning = 0;
 
 	client->stm.states = states;
 	stm_init(&client->stm);
