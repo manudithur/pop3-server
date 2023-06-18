@@ -40,11 +40,24 @@ static int setupSockAddr(char* addr, unsigned short port, void* res, socklen_t* 
   return 0;
 }
 
+bool isIp(char * ip){
+    struct sockaddr_in sa;
+    struct sockaddr_in6 sa6;
+    int result4 = inet_pton(AF_INET, ip, &(sa.sin_addr));
+    int result6 = inet_pton(AF_INET6, ip, &(sa6.sin6_addr));
+    return result4 != 0 || result6 != 0;
+}
+
+bool isPort(char * port){
+    int portNum = atoi(port);
+    return portNum > 1023 && portNum < 65536;
+}
+
 /*
  ** Se encarga de resolver el número de puerto para service (puede ser un string con el numero o el nombre del servicio)
  ** y crear el socket pasivo, para que escuche en cualquier IP, ya sea v4 o v6
  */
-int setupTCPServerSocket(const int service) {
+int setupTCPServerSocket(char * ip,const int service) {
 	
 	int opt = 1;
 
@@ -54,7 +67,7 @@ int setupTCPServerSocket(const int service) {
 	int servSock = -1;
 
         //IPV6 y puerto hardcodeado
-        if(setupSockAddr("::FFFF:127.0.0.1", service, &localAddr, &addrSize )){
+        if(setupSockAddr(ip, service, &localAddr, &addrSize )){
           printf("problem 0\n");
           return -1;
         }
