@@ -54,6 +54,18 @@ unsigned mgmt_errorHandler(struct selector_key *key){
     return lastValidState;
 }
 
+void freeAllMgmt(const unsigned state, struct selector_key * key){
+    //hace todos los frees
+    printf("ENTRE AL FREE\n");
+    client_data * data = ATTACHMENT(key);
+    parser_destroy(data->parser);
+
+    free(data);
+
+    close(key->fd);
+    key->data = NULL;
+}
+
 // TODO: check if return states are correctly managed
 unsigned mgmt_readHandler(struct selector_key * key) {
     client_data * data = ATTACHMENT(key);

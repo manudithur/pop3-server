@@ -89,7 +89,7 @@ void unregisterHandler(struct selector_key * key){
     selector_unregister_fd(key->s, key->fd);
 }
 
-void freeAll(const unsigned state, struct selector_key * key){
+void freeAllPop3(const unsigned state, struct selector_key * key){
     //hace todos los frees
     client_data * data = ATTACHMENT(key);
     if (data->username != NULL){
@@ -208,16 +208,16 @@ unsigned readHandler(struct selector_key * key) {
     return data->stm.current->state;
 }
 
-void greetingHandler(const unsigned state, struct selector_key *key){
-	client_data * data = ATTACHMENT(key);
-    char buf[] = {"+OK POP3 server ready\r\n"};
-    for (int i = 0; buf[i] != '\0'; i++){
-        if (buffer_can_write(&data->wbStruct)){
-            buffer_write(&data->wbStruct,buf[i]);
-        }
-    }
-    return ;
-}
+//void greetingHandler(const unsigned state, struct selector_key *key){
+//	client_data * data = ATTACHMENT(key);
+//    char buf[] = {"+OK POP3 server ready\r\n"};
+//    for (int i = 0; buf[i] != '\0'; i++){
+//        if (buffer_can_write(&data->wbStruct)){
+//            buffer_write(&data->wbStruct,buf[i]);
+//        }
+//    }
+//    return ;
+//}
 
 unsigned writeHandler(struct selector_key *key){
     client_data * data = ATTACHMENT(key);

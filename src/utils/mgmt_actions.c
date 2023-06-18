@@ -55,8 +55,7 @@ unsigned mgmt_quit_handler(selector_key *key){
             buffer_write(&data->wbStruct,buf[i]);
         }
     }
-
-    //finishConnection();
+    unregisterHandler(key);
     return data->stm.current->state;
 }
 

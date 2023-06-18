@@ -143,7 +143,7 @@ static struct state_definition states[] = {
 		.on_arrival = mailDeleter,
 		.on_write_ready = writeHandler,
         .on_read_ready = readHandler,
-        .on_departure = freeAll
+        .on_departure = freeAllPop3
 	},
     {
         .state = ERROR_STATE,
@@ -164,7 +164,8 @@ static struct state_definition mgmt_states[] = {
         {
             .state = ACTIVE_MGMT,
             .on_read_ready = mgmt_readHandler,
-            .on_write_ready = mgmt_writeHandler
+            .on_write_ready = mgmt_writeHandler,
+            .on_departure = freeAllMgmt
         },
         {
             .state = ERROR_MGMT,
@@ -216,7 +217,7 @@ void handleNewConnection(struct selector_key * key){
 	client->stm.states = states;
 	stm_init(&client->stm);
 
-    dprintf(client->fd, "+OK POP3 server ready\r\n");
+    send(client->fd, "+OK POP3 server ready\r\n", strlen("+OK POP3 server ready\r\n"), MSG_NOSIGNAL);
 
 
     int register_status = selector_register(key->s, clntSock, &pop3_handler, OP_READ, client);
@@ -271,7 +272,8 @@ void changeMaxConnections(int newMax){
 }
 
 void maxConnectionsReached(int clntSock){
-    dprintf(clntSock, "-ERR MAX CONNECTIONS REACHED\r\n");
+//    dprintf(clntSock, "-ERR MAX CONNECTIONS REACHED\r\n");
+    send(clntSock, "-ERR MAX CONNECTIONS REACHED\r\n", strlen("-ERR MAX CONNECTIONS REACHED\r\n"), MSG_NOSIGNAL);
 }
 
 
@@ -312,7 +314,7 @@ void handleAdminConnection(struct selector_key * key){
     client->stm.states = mgmt_states;
     stm_init(&client->stm);
 
-    dprintf(client->fd, "+OK Management server ready\r\n");
+    send(client->fd, "+OK Management server ready\r\n", strlen("+OK Management server ready\r\n"), MSG_NOSIGNAL);
 
     int register_status = selector_register(key->s, clntSock, &mgmt_handler, OP_READ, client);
 
