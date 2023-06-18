@@ -9,7 +9,7 @@ unsigned mgmt_user_handler(selector_key *key){
     if (validateAdminUser(data->command.arg1) != VALID_CREDENTIALS || data->command.arg2[0] != '\0'){
         return ERROR_MGMT;
     }
-    data->username = malloc(sizeof(char) * (strlen(data->command.arg1) + 1));
+    data->username = NULL;
     strcpy(data->username, data->command.arg1);
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
