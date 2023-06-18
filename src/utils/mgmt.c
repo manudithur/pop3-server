@@ -83,6 +83,7 @@ unsigned mgmt_readHandler(struct selector_key * key) {
         readCount = recv(key->fd, readBuffer, readLimit, 0);
         stats_update(0,readCount,0);
         if (readCount == 0) {
+            selector_set_interest_key(key, OP_NOOP);
             return UPDATE_MGMT;
         }
         buffer_write_adv(&data->rbStruct, readCount);
