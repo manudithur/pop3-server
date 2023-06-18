@@ -6,7 +6,7 @@ typedef struct commands{
     unsigned (*action)(selector_key * key);
 }commands;
 
-static unsigned lastValidState = AUTH_STATE;
+static unsigned lastValidState = AUTH_MGMT;
 
 static const commands command_list_auth[MGMT_AUTH_COMMAND_AMOUNT] = {
     {.command_name = "PASS",  .action = mgmt_pass_handler },                                       
@@ -59,6 +59,7 @@ void freeAllMgmt(const unsigned state, struct selector_key * key){
     printf("ENTRE AL FREE\n");
     client_data * data = ATTACHMENT(key);
     parser_destroy(data->parser);
+    free(data->username);
     data->parser = NULL;
 
     free(data);
@@ -77,15 +78,15 @@ unsigned mgmt_readHandler(struct selector_key * key) {
     uint8_t * readBuffer;
     unsigned retState;
 
-    readBuffer = buffer_write_ptr(&data->rbStruct, &readLimit);
-    readCount = recv(key->fd, readBuffer, readLimit, 0);
-    stats_update(0,readCount,0);
-
-    if (readCount <= 0) {
-        return -1;
+    if(!buffer_can_read(&data->rbStruct)){
+        readBuffer = buffer_write_ptr(&data->rbStruct, &readLimit);
+        readCount = recv(key->fd, readBuffer, readLimit, 0);
+        stats_update(0,readCount,0);
+        if (readCount == 0) {
+            return UPDATE_MGMT;
+        }
+        buffer_write_adv(&data->rbStruct, readCount);
     }
-
-    buffer_write_adv(&data->rbStruct, readCount);
 
     while(buffer_can_read(&data->rbStruct)) {
 
