@@ -165,6 +165,13 @@ static struct state_definition mgmt_states[] = {
             .state = ACTIVE_MGMT,
             .on_read_ready = mgmt_readHandler,
             .on_write_ready = mgmt_writeHandler,
+            .on_departure = NULL
+        },
+        {
+            .state = UPDATE_MGMT,
+            .on_arrival = unregisterHandler,
+            .on_read_ready = mgmt_readHandler,
+            .on_write_ready = mgmt_writeHandler,
             .on_departure = freeAllMgmt
         },
         {

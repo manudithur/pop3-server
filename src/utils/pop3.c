@@ -64,10 +64,10 @@ void mailDeleter(const unsigned state,struct selector_key * key){
         closedir(directory);
     }
 
-    unregisterHandler(key);
+    unregisterHandler(data->stm.current->state,key);
 }
 
-void unregisterHandler(struct selector_key * key){
+void unregisterHandler(const unsigned state, struct selector_key * key){
     client_data * data = ATTACHMENT(key);
 
     size_t writeLimit;
@@ -84,7 +84,8 @@ void unregisterHandler(struct selector_key * key){
     }
 
     buffer_read_adv(&data->wbStruct, writeCount);
-    selector_set_interest_key(key, OP_READ);
+    selector_set_interest_key(key, OP_NOOP);
+    printf("NO DEBERIA INTENTAR LEER MAS\n");
 
     selector_unregister_fd(key->s, key->fd);
 }

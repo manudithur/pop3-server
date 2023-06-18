@@ -59,6 +59,7 @@ void freeAllMgmt(const unsigned state, struct selector_key * key){
     printf("ENTRE AL FREE\n");
     client_data * data = ATTACHMENT(key);
     parser_destroy(data->parser);
+    data->parser = NULL;
 
     free(data);
 
@@ -68,6 +69,7 @@ void freeAllMgmt(const unsigned state, struct selector_key * key){
 
 // TODO: check if return states are correctly managed
 unsigned mgmt_readHandler(struct selector_key * key) {
+    printf("ENTRE AL READ\n");
     client_data * data = ATTACHMENT(key);
 
     size_t readLimit;
@@ -134,11 +136,13 @@ unsigned mgmt_readHandler(struct selector_key * key) {
             else{
                 lastValidState = retState;
             }
+            printf("TERMINE EL READ\n");
             return retState;
         }
     }
  
     //selector_set_interest_key(key, OP_WRITE);
+
     return data->stm.current->state;
 }
 

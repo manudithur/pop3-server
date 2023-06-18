@@ -11,6 +11,7 @@ enum pop3_states{
 enum mgmt_states{
     AUTH_MGMT =0,
     ACTIVE_MGMT,
+    UPDATE_MGMT,
     ERROR_MGMT
 };
 

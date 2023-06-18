@@ -49,14 +49,13 @@ unsigned mgmt_noop_handler(selector_key *key){
 //Deberia devolver el estado AUTH no?
 unsigned mgmt_quit_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
-    char buf[] = {"+OK GOODBYE\r\n"};
+    char buf[] = "+OK GOODBYE\r\n";
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,buf[i]);
         }
     }
-    unregisterHandler(key);
-    return data->stm.current->state;
+    return UPDATE_MGMT;
 }
 
 
