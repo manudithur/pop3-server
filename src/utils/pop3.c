@@ -241,11 +241,11 @@ unsigned writeHandler(struct selector_key *key){
 
     selector_set_interest_key(key, OP_READ);
 
-     if(data->retrRunning && !data->emailptr->done){
-         selector_set_interest(key->s, data->emailptr->email_fd, OP_READ);
-     }else if(data->retrRunning){
-         data->retrRunning =0;
-     }
+    if(data->retrRunning && !data->emailptr->done){
+        selector_set_interest(key->s, data->emailptr->email_fd, OP_READ);
+    }else if(data->retrRunning){
+        data->retrRunning =0;
+    }
 
     if(buffer_can_read(&data->rbStruct)){
         return readHandler(key);

@@ -5,11 +5,12 @@
 #define COMMAND_COUNT  13
 #define MAX_COMMAND_LENGTH 20
 #define MAX_COMMAND_ARGS 5
-#define MIN_ARGS 3
+#define MIN_ARGS 4
 
 typedef struct completeCommand {
     char    version[MAX_COMMAND_LENGTH];
-    char    token[MAX_COMMAND_LENGTH];
+    char    username[MAX_COMMAND_LENGTH];
+    char    password[MAX_COMMAND_LENGTH];
     int     commandIndex;
     int     argc;
     char    commandArgs[MAX_COMMAND_ARGS][MAX_COMMAND_LENGTH];
