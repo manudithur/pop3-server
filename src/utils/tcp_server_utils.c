@@ -296,6 +296,10 @@ void changeMaxConnections(int newMax){
     max_connections = newMax;
 }
 
+int getMaxConnections(){
+    return max_connections;
+}
+
 void maxConnectionsReached(int clntSock){
 //    dprintf(clntSock, "-ERR MAX CONNECTIONS REACHED\r\n");
     send(clntSock, "-ERR MAX CONNECTIONS REACHED\r\n", strlen("-ERR MAX CONNECTIONS REACHED\r\n"), MSG_NOSIGNAL);

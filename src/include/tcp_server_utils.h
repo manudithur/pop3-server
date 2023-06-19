@@ -70,6 +70,8 @@ typedef struct mgmt_data{
 }mgmt_data;
 
 
+
+
 static int setupSockAddr(char* addr, unsigned short port, void* res, socklen_t* socklenResult);
 
 // Create, bind, and listen a new TCP server socket
@@ -83,6 +85,8 @@ void handleAdminConnection(struct selector_key * key);
 void changeMaxConnections(int newMax);
 
 void maxConnectionsReached(int clntSock);
+
+int getMaxConnections();
 
 bool isIp(char * ip);
 
