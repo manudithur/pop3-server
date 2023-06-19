@@ -106,11 +106,13 @@ void freeAllPop3(const unsigned state, struct selector_key * key){
     free(data->emailptr);
     free(data);
 
+    lastValidState = AUTH_STATE;
+
     close(key->fd);
     key->data = NULL;
 }
 
-unsigned errorHandler(struct selector_key *key){
+void errorHandler(const unsigned state, struct selector_key *key){
     client_data * data = ATTACHMENT(key);
     char buf[] = {"-ERR\r\n"};
     for (int i = 0; buf[i] != '\0'; i++){
@@ -118,7 +120,8 @@ unsigned errorHandler(struct selector_key *key){
             buffer_write(&data->wbStruct,buf[i]);
         }
     }
-    return lastValidState;
+    selector_set_interest_key(key, OP_WRITE);
+//    return lastValidState;
 }
 
 // TODO: check if return states are correctly managed
@@ -135,6 +138,8 @@ unsigned readHandler(struct selector_key * key) {
         readCount = recv(key->fd, readBuffer, readLimit, 0);
         stats_update(0,readCount,0);
         if (readCount == 0) {
+            stats_remove_connection();
+            selector_set_interest_key(key, OP_NOOP);
             return UPDATE_STATE;
         }
         buffer_write_adv(&data->rbStruct, readCount);
@@ -237,12 +242,11 @@ unsigned writeHandler(struct selector_key *key){
 
     if (writeCount <= 0) {
         printf("error en write\n");
+        selector_set_interest_key(key, OP_NOOP);
         return ERROR_STATE;
     }
 
     buffer_read_adv(&data->wbStruct, writeCount);
-
-    
 
      if(data->retrRunning && !data->emailptr->done){
          selector_set_interest_key(key, OP_NOOP);
@@ -259,7 +263,7 @@ unsigned writeHandler(struct selector_key *key){
     }
 
     //if I can read more from buffer -> return UPDATE_STATE? no estoy seguro, tiene que seguir escribiendo
-    return data->stm.current->state;
+    return lastValidState;
 }
 
 

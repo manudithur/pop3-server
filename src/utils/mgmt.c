@@ -45,7 +45,7 @@ static unsigned mgmt_check_commands(struct selector_key * key, const commands * 
     return ERROR_MGMT;
 }
 
-unsigned mgmt_errorHandler(struct selector_key *key){
+void mgmt_errorHandler(const unsigned state,struct selector_key *key){
     client_data * data = ATTACHMENT(key);
     char buf[] = {"-ERR\r\n"};
     for (int i = 0; buf[i] != '\0'; i++){
@@ -53,7 +53,8 @@ unsigned mgmt_errorHandler(struct selector_key *key){
             buffer_write(&data->wbStruct,buf[i]);
         }
     }
-    return lastValidState;
+    selector_set_interest_key(key, OP_WRITE);
+//    return lastValidState;
 }
 
 void freeAllMgmt(const unsigned state, struct selector_key * key){
@@ -65,6 +66,9 @@ void freeAllMgmt(const unsigned state, struct selector_key * key){
     data->parser = NULL;
 
     free(data);
+
+    lastValidState = AUTH_STATE;
+
 
     close(key->fd);
     key->data = NULL;
@@ -85,6 +89,7 @@ unsigned mgmt_readHandler(struct selector_key * key) {
         readCount = recv(key->fd, readBuffer, readLimit, 0);
         stats_update(0,readCount,0);
         if (readCount == 0) {
+            stats_remove_connection();
             selector_set_interest_key(key, OP_NOOP);
             return UPDATE_MGMT;
         }
@@ -165,6 +170,7 @@ unsigned mgmt_writeHandler(struct selector_key *key){
 
     if (writeCount <= 0) {
         printf("error en write\n");
+        selector_set_interest_key(key, OP_NOOP);
         return ERROR_MGMT;
     }
 
@@ -176,7 +182,7 @@ unsigned mgmt_writeHandler(struct selector_key *key){
     }
 
     //if I can read more from buffer -> return UPDATE_STATE? no estoy seguro, tiene que seguir escribiendo
-    return data->stm.current->state;
+    return lastValidState;
 }
 
 

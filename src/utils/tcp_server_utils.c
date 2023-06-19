@@ -162,9 +162,9 @@ static struct state_definition states[] = {
 	},
     {
         .state = ERROR_STATE,
-        .on_arrival = NULL,  //TODO: manejar error
+        .on_arrival = errorHandler,  //TODO: manejar error
         .on_read_ready = readHandler,
-        .on_write_ready = errorHandler,
+        .on_write_ready = writeHandler,
         .on_departure = NULL
     }
 };
@@ -191,8 +191,9 @@ static struct state_definition mgmt_states[] = {
         },
         {
             .state = ERROR_MGMT,
+            .on_arrival = mgmt_errorHandler,
             .on_read_ready = mgmt_readHandler,
-            .on_write_ready = mgmt_errorHandler
+            .on_write_ready = mgmt_writeHandler
         }
 };
 

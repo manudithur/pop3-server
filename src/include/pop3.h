@@ -19,7 +19,7 @@
 
 unsigned readHandler(struct selector_key * key);
 unsigned writeHandler(struct selector_key *key);
-unsigned errorHandler(struct selector_key *key);
+void errorHandler(const unsigned state, struct selector_key *key);
 void freeAllPop3(const unsigned state, struct selector_key * key);
 void unregisterHandler(const unsigned state, struct selector_key * key);
 void mailDeleter(const unsigned state,struct selector_key * key);
