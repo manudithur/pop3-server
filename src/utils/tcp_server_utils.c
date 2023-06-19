@@ -240,6 +240,7 @@ void handleNewConnection(struct selector_key * key){
 
 	client->stm.states = states;
 	stm_init(&client->stm);
+    client->lastValidState = AUTH_STATE;
 
     send(client->fd, "+OK POP3 server ready\r\n", strlen("+OK POP3 server ready\r\n"), MSG_NOSIGNAL);
 
@@ -295,6 +296,10 @@ void changeMaxConnections(int newMax){
     max_connections = newMax;
 }
 
+int getMaxConnections(){
+    return max_connections;
+}
+
 void maxConnectionsReached(int clntSock){
 //    dprintf(clntSock, "-ERR MAX CONNECTIONS REACHED\r\n");
     send(clntSock, "-ERR MAX CONNECTIONS REACHED\r\n", strlen("-ERR MAX CONNECTIONS REACHED\r\n"), MSG_NOSIGNAL);
@@ -337,6 +342,7 @@ void handleAdminConnection(struct selector_key * key){
     client->stm.max_state = ERROR_MGMT;
     client->stm.states = mgmt_states;
     stm_init(&client->stm);
+    client->lastValidState = AUTH_MGMT;
 
     send(client->fd, "+OK Management server ready\r\n", strlen("+OK Management server ready\r\n"), MSG_NOSIGNAL);
 

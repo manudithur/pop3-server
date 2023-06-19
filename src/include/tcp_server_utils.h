@@ -50,6 +50,7 @@ typedef struct client_data{
     struct command_data command;
     struct email * emailptr;
     int retrRunning;
+    int lastValidState;
 }client_data;
 
 typedef struct mgmt_data{
@@ -65,7 +66,10 @@ typedef struct mgmt_data{
     struct parser * parser;
     struct command_data command;
     struct email * emailptr;
+    int lastValidState;
 }mgmt_data;
+
+
 
 
 static int setupSockAddr(char* addr, unsigned short port, void* res, socklen_t* socklenResult);
@@ -81,6 +85,8 @@ void handleAdminConnection(struct selector_key * key);
 void changeMaxConnections(int newMax);
 
 void maxConnectionsReached(int clntSock);
+
+int getMaxConnections();
 
 bool isIp(char * ip);
 
