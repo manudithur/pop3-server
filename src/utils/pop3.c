@@ -225,48 +225,40 @@ unsigned readHandler(struct selector_key * key) {
 //}
 
 unsigned writeHandler(struct selector_key *key){
-      client_data *data = ATTACHMENT(key);
+     client_data * data = ATTACHMENT(key);
 
     size_t writeLimit;
     ssize_t writeCount;
-    uint8_t *writeBuffer;
+    uint8_t* writeBuffer;
 
-    // Get the write buffer and its limit
     writeBuffer = buffer_read_ptr(&data->wbStruct, &writeLimit);
-
-    // Write data from the buffer to the socket
     writeCount = send(data->fd, writeBuffer, writeLimit, MSG_NOSIGNAL);
-    stats_update(writeCount, 0, 0);
+    stats_update(writeCount,0,0);
 
     if (writeCount <= 0) {
-        printf("Error in write\n");
+        printf("error en write\n");
         return ERROR_STATE;
     }
 
     buffer_read_adv(&data->wbStruct, writeCount);
 
-    // Check if RETR command is running and not yet completed
-    if (data->retrRunning && !data->emailptr->done) {
-        // Adjust the selector interests for email read operation
-        selector_set_interest_key(key, OP_NOOP);
-        selector_set_interest(key->s, data->emailptr->email_fd, OP_READ);
-        return data->stm.current->state;
-    } else if (data->retrRunning) {
-        // Adjust the selector interests for RETR completion
+    
+
+     if(data->retrRunning && !data->emailptr->done){
+         selector_set_interest_key(key, OP_NOOP);
+         selector_set_interest(key->s, data->emailptr->email_fd, OP_READ);
+         return data->stm.current->state;
+     }else if(data->retrRunning){
         selector_set_interest_key(key, OP_READ);
-        data->retrRunning = 0;
-        return data->stm.current->state;
-    }
-
-    // Set interest to read if there is more data in the read buffer
+         data->retrRunning =0;
+         return data->stm.current->state;
+     }
     selector_set_interest_key(key, OP_READ);
-
-    if (buffer_can_read(&data->rbStruct)) {
-        // More data to be read, invoke readHandler
+    if(buffer_can_read(&data->rbStruct)){
         return readHandler(key);
     }
 
-    // Return the current state
+    //if I can read more from buffer -> return UPDATE_STATE? no estoy seguro, tiene que seguir escribiendo
     return data->stm.current->state;
 }
 
