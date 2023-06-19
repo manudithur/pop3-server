@@ -233,8 +233,34 @@ void read_mail_handler(struct selector_key *key){
     //deberia preguntar si el otro puede escribir tambien?
     while(buffer_can_read(mail_buffer) && buffer_can_write(email_data->pStruct)){
         readBuffer = buffer_read_ptr(mail_buffer, &readLimit);
+        switch(email_data->stuffing){
+            case 0:
+                if (*readBuffer == '\r'){
+                    email_data->stuffing = 1;
+                }
+                break;
+            case 1:
+                if (*readBuffer == '\n'){
+                    email_data->stuffing = 2;
+                }else{
+                    email_data->stuffing = 0;
+                }
+                break;
+            case 2:
+                if (*readBuffer == '.'){
+                    email_data->stuffing = 3;
+                }else{
+                    email_data->stuffing = 0;
+                }
+                break;
+        }
+        if (email_data->stuffing == 3){
+            buffer_write(email_data->pStruct, '.');
+            email_data->stuffing = 0;
+        }else{
         buffer_write(email_data->pStruct, *readBuffer); //escribo lo que lei en el buffer del padre
         buffer_read_adv(mail_buffer, 1);
+        }
     }
 
     //SOLO SI TERMINE DE ESCRIBIR EL MAIL, O SI NO HAY MAS LUGAR EN EL BUFFER DEL PADRE
@@ -307,6 +333,7 @@ unsigned retr_handler(selector_key *key){
     email_data->email_fd = open(filePath, O_RDONLY);
     email_data->parent_fd = data->fd;
     email_data->done = 0;
+    email_data->stuffing=0;
     email_data->pStruct = &data->wbStruct;
     if (stat(filePath, &fileStat) == 0) {  
             if (S_ISREG(fileStat.st_mode)) {
