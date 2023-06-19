@@ -28,6 +28,7 @@ typedef struct email{
     struct buffer bStruct;
     uint8_t buffer[BUFFER];
     struct buffer * pStruct; //acceso al buffer del padre
+    int stuffing;
     int done;
 }email;
 
