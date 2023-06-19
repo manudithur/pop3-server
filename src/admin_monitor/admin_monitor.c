@@ -69,8 +69,9 @@ completeCommand *parse(int argc, char *argv[]) {
     completeCommand *command = malloc(sizeof(completeCommand));
 
     strncpy(command->version, argv[1], strlen(argv[1]));
-    strncpy(command->token, argv[2], strlen(argv[2]));
-    command->commandIndex = getCommandIndex(argv[3]);
+    strncpy(command->username, argv[2], strlen(argv[2]));
+    strncpy(command->password, argv[3], strlen(argv[3]));
+    command->commandIndex = getCommandIndex(argv[4]);
 
     command->argc = argc - 1 - MIN_ARGS;
 
@@ -78,7 +79,7 @@ completeCommand *parse(int argc, char *argv[]) {
         return NULL;
 
     for (int i = 0; i < command->argc; i++){   
-        strncpy(command->commandArgs[i], argv[i + 4], strlen(argv[i + 4]));
+        strncpy(command->commandArgs[i], argv[i + 5], strlen(argv[i + 5]));
     }
 
     return command;
@@ -108,7 +109,8 @@ void printDivider() {
 
 void printCommand(completeCommand * command) {
     printf("VERSION: %s\n", command->version);
-    printf("TOKEN: %s\n", command->token);
+    printf("USERNAME: %s\n", command->username);
+    printf("PASSWORD: %s\n", command->password);
     printf("COMMAND: %s\n", commands[command->commandIndex].name);
     printf("ARGS:");
     for (int i = 0; i < command->argc; i++)
@@ -144,46 +146,28 @@ int main(int argc, char *argv[]) {
     int socket =  createSocket("127.0.0.1", "6000");
 
     //Mandarle al socket USER
-    if(sendCommand(socket, "USER admin\r\n") == -1){
+    char buffer[1024];
+    sprintf(buffer, "USER %s\r\nPASS %s\r\n", command->username, command->password);
+
+    if(sendCommand(socket, buffer) == -1){
         printf("Error sending command\n");
         return 0;
     }
 
+    commandDispatcher(command->commandIndex, command->commandArgs);
+
     int qty;
     int readCarriageReturn = 0;
     uint8_t c;
-    while ((qty = read(socket, &c, 1)) > 0 && (readCarriageReturn && c == '\n')) {
+    //IMPRIME PERO SE QUEDA TRABADO
+    while ((qty = read(socket, &c, 1)) > 0) {
         putchar(c);
-        readCarriageReturn = c == '\r' ? 1 : 0;
     }
 
-    printf("Sali\n");
-
-
-    // //QUIT del sv
-    // if(sendCommand(socket, "QUIT\r\n") == -1){
-    //     printf("Error sending PASS command\n");
-    //     return 0;
-    // }
-
-    //Printear la respuesta
-    // int qtyBytes = 0;
-    // char c;
-
-    // char c1 = '\0';
-    // while (qtyBytes = read(socket, &c, 1) > 0 && !(c1 == '\r' && c == '\n'))
-    // {
-    //     c1 = c;
-    //     putchar(c);
-
-    // }
-
-    // printf("Sali\n");
+    
 
     //Cerrar socket
     closeSocket(socket);
-
-    //commandDispatcher(command->commandIndex, command->commandArgs);
 
     free(command);
 

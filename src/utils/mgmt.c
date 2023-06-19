@@ -171,6 +171,9 @@ unsigned mgmt_writeHandler(struct selector_key *key){
     buffer_read_adv(&data->wbStruct, writeCount);
     selector_set_interest_key(key, OP_READ);
 //
+    if(buffer_can_read(&data->rbStruct)){
+        return readHandler(key);
+    }
 
     //if I can read more from buffer -> return UPDATE_STATE? no estoy seguro, tiene que seguir escribiendo
     return data->stm.current->state;
