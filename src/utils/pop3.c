@@ -8,7 +8,6 @@ typedef struct commands{
     unsigned (*action)(selector_key * key);
 }commands;
 
-static unsigned lastValidState = AUTH_STATE;
 
 static const commands command_list_auth[AUTH_COMMAND_AMOUNT] = {
     {.command_name = "PASS",  .action = pass_handler },                                       
@@ -106,8 +105,6 @@ void freeAllPop3(const unsigned state, struct selector_key * key){
     free(data->emailptr);
     free(data);
 
-    lastValidState = AUTH_STATE;
-
     close(key->fd);
     key->data = NULL;
 }
@@ -204,11 +201,10 @@ unsigned readHandler(struct selector_key * key) {
 
             if(retState == ERROR_STATE){
                 printf("error state\n");
-                printf("cambie el retstate a %d\n", lastValidState);
-                retState = lastValidState;
+                retState = data->lastValidState;
             }
             else{
-                lastValidState = retState;
+                data->lastValidState = retState;
             }
             return retState;
         }
@@ -263,7 +259,7 @@ unsigned writeHandler(struct selector_key *key){
     }
 
     //if I can read more from buffer -> return UPDATE_STATE? no estoy seguro, tiene que seguir escribiendo
-    return lastValidState;
+    return data->lastValidState;
 }
 
 

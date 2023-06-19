@@ -8,8 +8,6 @@ typedef struct commands{
     unsigned (*action)(selector_key * key);
 }commands;
 
-static unsigned lastValidState = AUTH_MGMT;
-
 static const commands command_list_auth[MGMT_AUTH_COMMAND_AMOUNT] = {
     {.command_name = "PASS",  .action = mgmt_pass_handler },                                       
     {.command_name = "USER",  .action = mgmt_user_handler },                                         
@@ -67,8 +65,6 @@ void freeAllMgmt(const unsigned state, struct selector_key * key){
     data->parser = NULL;
 
     free(data);
-
-    lastValidState = AUTH_STATE;
 
 
     close(key->fd);
@@ -140,11 +136,10 @@ unsigned mgmt_readHandler(struct selector_key * key) {
             
             if(retState == ERROR_MGMT){
                 printf("error state\n");
-                printf("cambie el retstate a %d\n", lastValidState);
-                retState = lastValidState;
+                retState = data->lastValidState;
             }
             else{
-                lastValidState = retState;
+                data->lastValidState = retState;
             }
             printf("TERMINE EL READ\n");
             return retState;
@@ -183,7 +178,7 @@ unsigned mgmt_writeHandler(struct selector_key *key){
     }
 
     //if I can read more from buffer -> return UPDATE_STATE? no estoy seguro, tiene que seguir escribiendo
-    return lastValidState;
+    return data->lastValidState;
 }
 
 
