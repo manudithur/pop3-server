@@ -3,10 +3,11 @@
 #include "./include/monitor_utils.h"
 
 int sendCommand(int sock, char * command) {
-    if (send(sock, command, strlen(command), 0) == -1) {
+    if (send(sock, command, strlen(command), MSG_NOSIGNAL) == -1) {
         perror("send");
         return -1;
     }
+    printf("Just sent %s\n", command);
 
     return 0;
 }

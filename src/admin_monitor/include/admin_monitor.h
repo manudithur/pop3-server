@@ -1,9 +1,11 @@
 #ifndef _ADMIN_CONTROLLER_H_
 #define _ADMIN_CONTROLLER_H_
 
+#include "client_actions.h"
+#include "monitor_utils.h"
 
 #define COMMAND_COUNT  13
-#define MAX_COMMAND_LENGTH 20
+#define MAX_COMMAND_LENGTH 100
 #define MAX_COMMAND_ARGS 5
 #define MIN_ARGS 4
 
@@ -26,8 +28,8 @@ static command commands[] = {
     {"-HELP", 0, {""}},
 
     //Estadisticas
-    {"-HISTORIC_CONEC", 0, {""}},
-    {"-LIVE_CONEC", 0, {""}},
+    {"-HISTORIC_CONNEC", 0, {""}},
+    {"-LIVE_CONNEC", 0, {""}},
     {"-BYTES_TRANS", 0, {""}},
     {"-USERS", 0, {""}},
     {"-STATUS", 0, {""}},
@@ -46,11 +48,11 @@ static command commands[] = {
     {"-NEW_TOKEN", 2, {"oldToken", "newToken"}}
 };
 
-void commandDispatcher(int commandIndex, char argv[][MAX_COMMAND_LENGTH]);
+void commandDispatcher(int commandIndex, char argv[][MAX_COMMAND_LENGTH], int sock, char *username, char *password);
 
 completeCommand *parse(int argc, char *argv[]);
 
-void help(char argv[][MAX_COMMAND_LENGTH]);
+
 
 void invalidCommandResponse();
 
