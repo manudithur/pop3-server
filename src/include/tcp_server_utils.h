@@ -21,7 +21,7 @@
 #include "pop3_actions.h"
 #include "stats.h"
 
-#define BUFFER_LEN 5000
+#define BUFFER_LEN 4096
 #define MAX_COMMAND_LEN 40
 #define MAX_ARG_LEN 100
 #define ATTACHMENT(key) ((client_data*)(key)->data)

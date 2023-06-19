@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "../include/pop3.h"
 #include <stdio.h>
 
@@ -175,8 +177,9 @@ unsigned readHandler(struct selector_key * key) {
                 if(buffer_can_read(&data->wbStruct)){
                     selector_set_interest_key(key, OP_WRITE);
                 }else{
+                    selector_set_interest_key(key, OP_NOOP); 
                     selector_set_interest(key->s, data->emailptr->email_fd, OP_READ);
-                    selector_set_interest_key(key, OP_NOOP);
+                    
                 }
 
             }else{
@@ -222,36 +225,48 @@ unsigned readHandler(struct selector_key * key) {
 //}
 
 unsigned writeHandler(struct selector_key *key){
-    client_data * data = ATTACHMENT(key);
+      client_data *data = ATTACHMENT(key);
 
     size_t writeLimit;
     ssize_t writeCount;
-    uint8_t* writeBuffer;
+    uint8_t *writeBuffer;
 
+    // Get the write buffer and its limit
     writeBuffer = buffer_read_ptr(&data->wbStruct, &writeLimit);
+
+    // Write data from the buffer to the socket
     writeCount = send(data->fd, writeBuffer, writeLimit, MSG_NOSIGNAL);
-    stats_update(writeCount,0,0);
+    stats_update(writeCount, 0, 0);
 
     if (writeCount <= 0) {
-        printf("error en write\n");
+        printf("Error in write\n");
         return ERROR_STATE;
     }
 
     buffer_read_adv(&data->wbStruct, writeCount);
 
+    // Check if RETR command is running and not yet completed
+    if (data->retrRunning && !data->emailptr->done) {
+        // Adjust the selector interests for email read operation
+        selector_set_interest_key(key, OP_NOOP);
+        selector_set_interest(key->s, data->emailptr->email_fd, OP_READ);
+        return data->stm.current->state;
+    } else if (data->retrRunning) {
+        // Adjust the selector interests for RETR completion
+        selector_set_interest_key(key, OP_READ);
+        data->retrRunning = 0;
+        return data->stm.current->state;
+    }
+
+    // Set interest to read if there is more data in the read buffer
     selector_set_interest_key(key, OP_READ);
 
-     if(data->retrRunning && !data->emailptr->done){
-         selector_set_interest(key->s, data->emailptr->email_fd, OP_READ);
-     }else if(data->retrRunning){
-         data->retrRunning =0;
-     }
-
-    if(buffer_can_read(&data->rbStruct)){
+    if (buffer_can_read(&data->rbStruct)) {
+        // More data to be read, invoke readHandler
         return readHandler(key);
     }
 
-    //if I can read more from buffer -> return UPDATE_STATE? no estoy seguro, tiene que seguir escribiendo
+    // Return the current state
     return data->stm.current->state;
 }
 
