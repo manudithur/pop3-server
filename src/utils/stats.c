@@ -43,6 +43,32 @@ void stats_remove_connection(){
     stats->concurrentConnections--;
 }
 
+void stats_log_connection(const char* ip){
+    
+    FILE* file = fopen("logs", "a");  // Open the file in append mode
+
+    if (file == NULL) {
+        printf("Error opening  logs file\n");
+        return;
+    }
+
+    fprintf(file, "-\"%s\" has been connected\n", ip);
+    fclose(file);
+}
+
+void stats_log_user(const char* user){
+    
+    FILE* file = fopen("logs", "a");  // Open the file in append mode
+
+    if (file == NULL) {
+        printf("Error opening logs file\n");
+        return;
+    }
+
+    fprintf(file, "-%s has logged in\n", user);
+    fclose(file);
+}
+
 size_t getTotalConnections(){
     if(stats == NULL) return 0;
     return stats->totalConnections;
@@ -71,3 +97,4 @@ void stats_print(){
     printf("Total mails retrieved: %ld\n", stats->totalMailsSent);
     printf("Concurrent connections: %ld\n", stats->concurrentConnections);
 }
+

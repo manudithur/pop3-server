@@ -88,7 +88,9 @@ unsigned pass_handler(selector_key *key){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,buf[i]);
         }
+        
     }
+    stats_log_user(data->username);
     return TRANSACTION_STATE;
 }
 

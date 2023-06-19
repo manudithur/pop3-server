@@ -220,7 +220,9 @@ void handleNewConnection(struct selector_key * key){
 	stats_add_connection();
 	printSocketAddress((struct sockaddr *) &clntAddr, addrBuffer);
 	log(INFO, "Handling client %s", addrBuffer);
-
+    
+    stats_log_connection(addrBuffer);
+    
 	struct client_data * client = calloc(1, sizeof(struct client_data));
 	if(client == NULL){
 		close(clntSock);
