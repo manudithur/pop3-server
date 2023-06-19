@@ -2,12 +2,9 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "pop3_actions.h"
 
-
-
-
 unsigned user_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
-    char buf[] = {"+OK USER\r\n"};
+    char buf[] = "+OK USER\r\n";
     if (validateUser(data->command.arg1) != VALID_CREDENTIALS || data->command.arg2[0] != '\0'){
         return ERROR_STATE;
     }
@@ -34,7 +31,7 @@ unsigned user_handler(selector_key *key){
     const char * defaultMail2Path = "src/mail/defaults/default_mail2";
     const char * defaultMail3Path = "src/mail/defaults/default_mail3";
 
-    char destinationFilePath[100];
+    char destinationFilePath[300];
 
     if (dir == NULL){
         char newDirPath[PATH_MAX_LENGTH] = {0};
@@ -45,7 +42,7 @@ unsigned user_handler(selector_key *key){
         const char * sourceFiles[DEFAULT_MAIL_COUNT] = {defaultMail1Path, defaultMail2Path, defaultMail3Path};
         const char * destinationFiles[DEFAULT_MAIL_COUNT] = {"default_mail1", "default_mail2", "default_mail3"};
         emailCount = 3;
-        for (int i = 0; i < DEFAULT_MAIL_COUNT;i++){
+        for (int i = 0; i < DEFAULT_MAIL_COUNT ; i++){
             FILE* sourceFile = fopen(sourceFiles[i], "rb");
 
             snprintf(destinationFilePath, sizeof(destinationFilePath), "%s%s", dirPath, destinationFiles[i]);
@@ -75,7 +72,7 @@ unsigned user_handler(selector_key *key){
         closedir(dir);
     }
 
-    data->emailDeleted = calloc(1, sizeof(bool) * (emailCount + 1));  //inicializa todos los mails como no borrados
+    data->emailDeleted = calloc(1, sizeof(bool) * (emailCount));  //inicializa todos los mails como no borrados
     data->emailCount = emailCount;
 
     return AUTH_STATE;
@@ -83,7 +80,7 @@ unsigned user_handler(selector_key *key){
 
 unsigned pass_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
-    char buf[] = {"+OK PASS\r\n"};
+    char buf[] = "+OK PASS\r\n";
     if (data->username == NULL || validateUserCredentials(data->username, data->command.arg1) != VALID_CREDENTIALS || data->command.arg2[0] != '\0'){
         return ERROR_STATE;
     }
