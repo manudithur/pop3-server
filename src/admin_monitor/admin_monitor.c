@@ -7,48 +7,47 @@
 #include "./include/admin_monitor.h"
 
 void commandDispatcher(int commandIndex, char argv[][MAX_COMMAND_LENGTH], int sock, char * username, char * password) {
-    printf("Command index: %d\n", commandIndex);
     switch (commandIndex) {
         case 0:
             help(argv);
             break;
         //make all the cases for the commands calling a function passing argv
          case 1:
-             historicConnections(sock, argv, username, password);
-             break;
+            historicConnections(sock, argv, username, password);
+            break;
          case 2:
-             liveConnections(sock,argv, username, password);
-             break;
+            liveConnections(sock,argv, username, password);
+            break;
          case 3:
-             bytesTransferred(sock,argv, username, password);
-             break;
+            bytesTransferred(sock,argv, username, password);
+            break;
          case 4:
-             users(sock,argv, username, password);
-             break;
+            users(sock,argv, username, password);
+            break;
          case 5:
-             status(sock,argv, username, password);
-             break;
+            status(sock,argv, username, password);
+            break;
          case 6:
-             maxUsers(sock,argv, username, password);
-             break;
+            maxUsers(sock,argv, username, password);
+            break;
          case 7:
-             maxConnections(sock,argv, username, password);
-             break;
+            maxConnections(sock,argv, username, password);
+            break;
          case 8:
-             timeout(sock,argv, username, password);
-             break;
+            timeout(sock,argv, username, password);
+            break;
          case 9:
-             deleteUser(sock,argv, username, password);
-             break;
+            deleteUser(sock,argv, username, password);
+            break;
          case 10:
-             addUser(sock,argv, username, password);
-             break;
+            addUser(sock,argv, username, password);
+            break;
          case 11:
-             resetUserPassword(sock, argv, username, password);
-             break;
-        // case 12:
-        //     newToken(argv);
-        //     break;
+            resetUserPassword(sock, argv, username, password);
+            break;
+        case 12:
+            changeUserPassword(sock, argv, username, password);
+            break;
         default:
             printf("NOT IMPLEMENTED YET\n");
             break;
@@ -92,16 +91,16 @@ void printDivider() {
     printf("--------------------------------------------------\n");
 }
 
-void printCommand(completeCommand * command) {
-    printf("VERSION: %s\n", command->version);
-    printf("USERNAME: %s\n", command->username);
-    printf("PASSWORD: %s\n", command->password);
-    printf("COMMAND: %s\n", commands[command->commandIndex].name);
-    printf("ARGS:");
-    for (int i = 0; i < command->argc; i++)
-        printf(" <%s>: %s", commands[command->commandIndex].argNames[i], command->commandArgs[i]);
-    putchar('\n');
-}
+// void printCommand(completeCommand * command) {
+//     printf("VERSION: %s\n", command->version);
+//     printf("USERNAME: %s\n", command->username);
+//     printf("PASSWORD: %s\n", command->password);
+//     printf("COMMAND: %s\n", commands[command->commandIndex].name);
+//     printf("ARGS:");
+//     for (int i = 0; i < command->argc; i++)
+//         printf(" <%s>: %s", commands[command->commandIndex].argNames[i], command->commandArgs[i]);
+//     putchar('\n');
+// }
 
 int main(int argc, char *argv[]) {
     int maxCommandArgs = 0;
@@ -123,16 +122,11 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    printCommand(command);
-
-    putchar('\n');
-
     //Crear socket
     int socket =  createSocket("127.0.0.1", "6000");
 
     commandDispatcher(command->commandIndex, command->commandArgs, socket,command->username,command->password);
-
-
+    
     //Cerrar socket
     closeSocket(socket);
 

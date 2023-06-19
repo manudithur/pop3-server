@@ -45,14 +45,12 @@ static command commands[] = {
     {"-RESET_USER_PASSWORD", 1, {"username"}},
 
     //Manejo de administrador
-    {"-NEW_TOKEN", 2, {"oldToken", "newToken"}}
+    {"-CHANGE_PASSWORD", 2, {"oldPassword", "newPassword"}}
 };
 
 void commandDispatcher(int commandIndex, char argv[][MAX_COMMAND_LENGTH], int sock, char *username, char *password);
 
 completeCommand *parse(int argc, char *argv[]);
-
-
 
 void invalidCommandResponse();
 

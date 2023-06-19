@@ -39,6 +39,7 @@ static unsigned mgmt_check_commands(struct selector_key * key, const commands * 
     client_data * data = ATTACHMENT(key);
     for(int i = 0 ; i < command_amount; i ++){
         if(strcmp(data->command.command, command_list[i].command_name) == 0){
+            printf("ENTRE AL COMANDO %s\n", data->command.command);
             return command_list[i].action(key);
         }
     }
@@ -72,7 +73,7 @@ void freeAllMgmt(const unsigned state, struct selector_key * key){
 
 // TODO: check if return states are correctly managed
 unsigned mgmt_readHandler(struct selector_key * key) {
-    printf("ENTRE AL READ\n");
+    printf("ENTRE AL READ DE MGMT\n");
     client_data * data = ATTACHMENT(key);
 
     size_t readLimit;
@@ -172,7 +173,7 @@ unsigned mgmt_writeHandler(struct selector_key *key){
     selector_set_interest_key(key, OP_READ);
 //
     if(buffer_can_read(&data->rbStruct)){
-        return readHandler(key);
+        return mgmt_readHandler(key);
     }
 
     //if I can read more from buffer -> return UPDATE_STATE? no estoy seguro, tiene que seguir escribiendo

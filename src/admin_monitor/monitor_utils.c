@@ -7,8 +7,6 @@ int sendCommand(int sock, char * command) {
         perror("send");
         return -1;
     }
-    printf("Just sent %s\n", command);
-
     return 0;
 }
 

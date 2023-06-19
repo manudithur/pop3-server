@@ -104,5 +104,13 @@ void resetUserPassword(int sock, char argv[][MAX_COMMAND_LENGTH],char * username
     readFromSocket(sock);
 }
 
+void changeUserPassword(int sock, char argv[][MAX_COMMAND_LENGTH],char * username,char * password){
+    char command[MAX_COMMAND_LENGTH];
+    sprintf(command, "USER %s\r\nPASS %s\r\nCHANGE_PASSWORD %s %s\r\nQUIT\r\n", username, password, argv[0], argv[1]);
+    sendCommand(sock, command);
+    readFromSocket(sock);
+}
+
+
 
 
