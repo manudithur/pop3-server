@@ -1,5 +1,12 @@
 # pop3-server
 
+
+Integrantes:
+-Martin Hecht
+-Manuel Dithurbide
+-Tomas Gay Bare
+-Tobias Perry
+
 ## Compilacion
 
 ### Requisitos
