@@ -174,7 +174,7 @@ unsigned readHandler(struct selector_key * key) {
                     break;
             }
             if(strcmp(data->command.command, "RETR") == 0 && retState != ERROR_STATE){
-                printf("entre al chequeo\n");
+//                printf("entre al chequeo\n");
                 data->retrRunning = 1;
                 if(buffer_can_read(&data->wbStruct)){
                     selector_set_interest_key(key, OP_WRITE);

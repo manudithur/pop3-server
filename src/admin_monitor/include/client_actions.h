@@ -23,5 +23,6 @@ void addUser(int sock, char argv[][MAX_PARAM_LENGTH],char * username,char *passw
 void resetUserPassword(int sock, char argv[][MAX_PARAM_LENGTH],char * username,char *password);
 void bytesTransferred(int sock, char argv[][MAX_PARAM_LENGTH],char * username,char *password);
 void changeUserPassword(int sock, char argv[][MAX_PARAM_LENGTH],char * username,char * password);
+void viewUserLogs(char argv[][MAX_PARAM_LENGTH]);
 
 #endif //POP3_SERVER_CLIENT_ACTIONS_H

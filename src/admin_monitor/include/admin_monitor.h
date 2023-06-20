@@ -4,7 +4,7 @@
 #include "client_actions.h"
 #include "monitor_utils.h"
 
-#define COMMAND_COUNT  13
+#define COMMAND_COUNT  14
 #define MAX_COMMAND_LENGTH 100
 #define MAX_COMMAND_ARGS 5
 #define MIN_ARGS 4
@@ -45,7 +45,8 @@ static command commands[] = {
     {"-RESET_USER_PASSWORD", 1, {"username"}},
 
     //Manejo de administrador
-    {"-CHANGE_PASSWORD", 2, {"oldPassword", "newPassword"}}
+    {"-CHANGE_PASSWORD", 2, {"oldPassword", "newPassword"}},
+    {"-VIEW_USER_LOGS", 0, {""}}
 };
 
 void commandDispatcher(int commandIndex, char argv[][MAX_COMMAND_LENGTH], int sock, char *username, char *password);
