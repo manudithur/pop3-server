@@ -48,6 +48,9 @@ void commandDispatcher(int commandIndex, char argv[][MAX_COMMAND_LENGTH], int so
         case 12:
             changeUserPassword(sock, argv, username, password);
             break;
+        case 13:
+            viewUserLogs(argv);
+            break;
         default:
             printf("NOT IMPLEMENTED YET\n");
             break;

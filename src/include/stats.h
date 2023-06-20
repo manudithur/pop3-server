@@ -45,6 +45,9 @@ void stats_destroy();
 
 void stats_print(); //temporal
 
+void stats_log_user(const char* user);
+
+void stats_log_connection(const char* ip);
 
 
 

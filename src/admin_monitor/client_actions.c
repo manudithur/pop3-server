@@ -111,6 +111,22 @@ void changeUserPassword(int sock, char argv[][MAX_COMMAND_LENGTH],char * usernam
     readFromSocket(sock);
 }
 
+void viewUserLogs(char argv[][MAX_COMMAND_LENGTH]){
+    FILE* file;
+    int c;
+
+    file = fopen("../../logs", "r");
+    if (file == NULL) {
+        return;
+    }
+
+    while ((c = fgetc(file)) != EOF) {
+        putchar(c);
+    }
+
+    fclose(file);
+}
+
 
 
 
