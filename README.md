@@ -2,9 +2,13 @@
 
 
 Integrantes:
+
 -Martin Hecht
+
 -Manuel Dithurbide
+
 -Tomas Gay Bare
+
 -Tobias Perry
 
 ## Compilacion
