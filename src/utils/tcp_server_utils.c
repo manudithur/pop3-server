@@ -119,21 +119,20 @@ static void pop3_write(struct selector_key *key) {
 }
 
 static void pop3_close(struct selector_key *key) {
-    struct client_data* data =
-            ATTACHMENT(key);
-    struct state_machine* stm = &ATTACHMENT(key)->stm;
+    struct client_data * data = ATTACHMENT(key);
+    struct state_machine * stm = &ATTACHMENT(key)->stm;
     //stm_handler_close(stm, key);
     if (stm != NULL && stm->current != NULL){
         freeAllPop3(stm->current->state, key);
-
     }
     else{
+        parser_destroy(data->parser);
         free(data);
     }
 }
 
 static void pop3_block(struct selector_key *key) {
-	struct state_machine* stm = &ATTACHMENT(key)->stm;
+	struct state_machine * stm = &ATTACHMENT(key)->stm;
     const enum pop3_states st = stm_handler_block(stm, key);
 }
 
