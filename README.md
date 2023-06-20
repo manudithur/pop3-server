@@ -1,7 +1,5 @@
 # pop3-server
 
-TP Protos.
-
 ## Compilacion
 
 ### Requisitos
