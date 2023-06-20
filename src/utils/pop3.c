@@ -101,8 +101,8 @@ void freeAllPop3(const unsigned state, struct selector_key * key){
     parser_destroy(data->parser);
     if (data->emailptr != NULL){
         selector_unregister_fd(key->s, data->emailptr->email_fd);
+        free(data->emailptr);
     }
-    free(data->emailptr);
     free(data);
 
     close(key->fd);
