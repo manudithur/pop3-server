@@ -119,8 +119,9 @@ static void pop3_write(struct selector_key *key) {
 }
 
 static void pop3_close(struct selector_key *key) {
-struct state_machine* stm = &ATTACHMENT(key)->stm;
-    stm_handler_close(stm, key);
+    struct state_machine* stm = &ATTACHMENT(key)->stm;
+    //stm_handler_close(stm, key);
+    freeAllPop3(stm->current->state, key);
 }
 
 static void pop3_block(struct selector_key *key) {
@@ -158,7 +159,7 @@ static struct state_definition states[] = {
 		.on_arrival = mailDeleter,
 		.on_write_ready = writeHandler,
         .on_read_ready = readHandler,
-        .on_departure = freeAllPop3
+        .on_departure = NULL, //freeAllPop3
 	},
     {
         .state = ERROR_STATE,
@@ -354,4 +355,3 @@ void handleAdminConnection(struct selector_key * key){
         return;
     }
 }
-

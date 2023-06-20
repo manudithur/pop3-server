@@ -111,7 +111,7 @@ void freeAllPop3(const unsigned state, struct selector_key * key){
 
 void errorHandler(const unsigned state, struct selector_key *key){
     client_data * data = ATTACHMENT(key);
-    char buf[] = {"-ERR\r\n"};
+    char buf[] = "-ERR\r\n";
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,buf[i]);

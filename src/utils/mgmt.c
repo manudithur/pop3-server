@@ -44,7 +44,7 @@ static unsigned mgmt_check_commands(struct selector_key * key, const commands * 
     return ERROR_MGMT;
 }
 
-void mgmt_errorHandler(const unsigned state,struct selector_key *key){
+void mgmt_errorHandler(const unsigned state, struct selector_key *key){
     client_data * data = ATTACHMENT(key);
     char buf[] = {"-ERR\r\n"};
     for (int i = 0; buf[i] != '\0'; i++){

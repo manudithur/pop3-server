@@ -64,6 +64,7 @@ int main(int argc , char *argv[]){
     int portNumber = atoi(port);
     parseAndAddUsers(argc-3, argv+3);
     stats_init();
+
     signal(SIGTERM, sigterm_handler);
     signal(SIGINT, sigterm_handler);
 
@@ -119,6 +120,7 @@ int main(int argc , char *argv[]){
     }
 
     finish:
+    remove("../logs");
     selector_destroy(selector);
     selector_close();
     close(serverSocket);
