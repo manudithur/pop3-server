@@ -13,7 +13,7 @@ TP Protos.
 ```make all```
 
 
-Se generara el binarios `run` y dentro del directorio raíz. Este permite la ejecución del servidor pop3.
+Se generara el binario `run` dentro del directorio raíz. Este permite la ejecución del servidor pop3.
 
 ## Ejecucion
 
