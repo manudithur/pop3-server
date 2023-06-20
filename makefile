@@ -44,6 +44,7 @@ $(OBJ_DIR)/%.o: $(PARSERS_DIR)/%.c
 clean:
 	@$(MAKE) -C src/admin_monitor clean
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
+	rm -f  $(TARGET)
 
 .PHONY: patch
 
