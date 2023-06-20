@@ -13,11 +13,12 @@ static char addrBuffer[MAX_ADDR_BUFFER];
 
 static int max_connections = MAX_CONNECTIONS;
 
-static int setupSockAddr(char* addr, unsigned short port, void* res, socklen_t* socklenResult) {
+static int setupSocket(char* addr, unsigned short port, void* res, socklen_t* socklenResult) {
+    //me fijo si me enviaron ip con : => IPv6
   int ipv6 = strchr(addr, ':') != NULL;
 
   if (ipv6) {
-    // Parse addr as IPv6
+    //IPv6
     struct sockaddr_in6 sock6;
     memset(&sock6, 0, sizeof(sock6));
 
@@ -30,7 +31,7 @@ static int setupSockAddr(char* addr, unsigned short port, void* res, socklen_t* 
     return 0;
   }
 
-  // Parse addr as IPv4
+  //IPv4
   struct sockaddr_in sock4;
   memset(&sock4, 0, sizeof(sock4));
   sock4.sin_family = AF_INET;
@@ -59,7 +60,7 @@ bool isPort(char * port){
  ** Se encarga de resolver el número de puerto para service (puede ser un string con el numero o el nombre del servicio)
  ** y crear el socket pasivo, para que escuche en cualquier IP, ya sea v4 o v6
  */
-int setupTCPServerSocket(char * ip,const int service) {
+int setupTCPServerSocket(char * ip, const int service) {
 	
 	int opt = 1;
 
@@ -69,7 +70,7 @@ int setupTCPServerSocket(char * ip,const int service) {
 	int servSock = -1;
 
         //IPV6 y puerto hardcodeado
-        if(setupSockAddr(ip, service, &localAddr, &addrSize )){
+        if(setupSocket(ip, service, &localAddr, &addrSize )){
           printf("problem 0\n");
           return -1;
         }
@@ -81,7 +82,7 @@ int setupTCPServerSocket(char * ip,const int service) {
           return -1;
         }
 
-
+        //Ver codigo Marcelo
         if( setsockopt(servSock, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0 );
 
         // Bind to ALL the address and set socket to listen
