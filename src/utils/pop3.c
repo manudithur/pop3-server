@@ -143,7 +143,6 @@ unsigned readHandler(struct selector_key * key) {
     }
 
     while(buffer_can_read(&data->rbStruct)) {
-
         const struct parser_event *ret = parser_feed(data->parser, buffer_read(&data->rbStruct));
     
 
@@ -161,7 +160,6 @@ unsigned readHandler(struct selector_key * key) {
             //Que no haga nada
         }
         else{
-          
             switch(data->stm.current->state){
                 case TRANSACTION_STATE:
                     retState =  check_commands(key, command_list_transaction, TRANSACTION_COMMAND_AMOUNT);
@@ -181,7 +179,6 @@ unsigned readHandler(struct selector_key * key) {
                 }else{
                     selector_set_interest_key(key, OP_NOOP); 
                     selector_set_interest(key->s, data->emailptr->email_fd, OP_READ);
-                    
                 }
 
             }else{

@@ -196,7 +196,7 @@ static struct state_definition mgmt_states[] = {
             .on_arrival = unregisterHandler,
             .on_read_ready = mgmt_readHandler,
             .on_write_ready = mgmt_writeHandler,
-            .on_departure = freeAllMgmt
+            .on_departure = NULL
         },
         {
             .state = ERROR_MGMT,
@@ -283,8 +283,15 @@ static void mgmt_write(struct selector_key *key) {
 
 static void mgmt_close(struct selector_key *key) {
 struct state_machine* stm = &ATTACHMENT(key)->stm;
-    stm_handler_close(stm, key);
-    //TODO : cerrar la conexion al cliente
+    struct client_data * data = ATTACHMENT(key);
+    //stm_handler_close(stm, key);
+    if (stm != NULL && stm->current != NULL){
+        freeAllMgmt(stm->current->state, key);
+    }
+    else{
+        parser_destroy(data->parser);
+        free(data);
+    }
 }
 
 static void mgmt_block(struct selector_key *key) {

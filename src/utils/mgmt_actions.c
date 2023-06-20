@@ -57,6 +57,7 @@ unsigned mgmt_quit_handler(selector_key *key){
             buffer_write(&data->wbStruct,buf[i]);
         }
     }
+    stats_remove_connection();
     return UPDATE_MGMT;
 }
 
