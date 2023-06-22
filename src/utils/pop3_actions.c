@@ -57,7 +57,7 @@ unsigned user_handler(selector_key *key){
             fclose(destinationFile);
         }
 
-        printf("INFO: Socket %d - %s mail directory does not exist\n", data->client_fd, data->username);
+        printf("INFO: Socket %d - %s mail directory does not exist\n", data->fd, data->username);
         return UPDATE_STATE;
 
     }
@@ -92,7 +92,7 @@ unsigned pass_handler(selector_key *key){
         
     }
     stats_log_user(data->username);
-    printf("INFO: Socket %d - %s logged in\n", data->client_fd, data->username);
+    printf("INFO: Socket %d - %s logged in\n", data->fd, data->username);
     return TRANSACTION_STATE;
 }
 
@@ -399,7 +399,7 @@ unsigned rset_handler(selector_key *key){
 
     for (int i = 0; i < data->emailCount; i++){
         data->emailDeleted[i] = false;
-        printf("INFO: Socket %d - deleted emails restored\n", data->fd, n);
+        printf("INFO: Socket %d - deleted emails restored\n", data->fd);
     }
 
     return TRANSACTION_STATE;
