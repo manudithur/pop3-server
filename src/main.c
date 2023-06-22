@@ -90,9 +90,10 @@ int main(int argc , char *argv[]){
 
     ss = selector_register(selector, serverSocket, &socket_handler, OP_READ, NULL);
     if(ss != SELECTOR_SUCCESS){
-        //handle error
+        printf("ERROR: error registering socket\n");
         return 1;
     }
+    printf("INFO: socket registered\n");
 
 
     //Management socket
@@ -106,9 +107,10 @@ int main(int argc , char *argv[]){
 
     ss = selector_register(selector, mgmtSocket, &mgmt_handler, OP_READ, NULL);
     if(ss != SELECTOR_SUCCESS){
-        //handle error
+        printf("ERROR: error registering management socket\n");
         return 1;
     }
+    printf("INFO: management socket registered\n");
 
 
     while(!killServer){
