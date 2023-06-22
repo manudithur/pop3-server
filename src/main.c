@@ -50,6 +50,11 @@ int main(int argc , char *argv[]){
             }
     };
 
+    if(argc < 2){
+        fprintf(stderr, "Invalid IP or invalid port\nFormat: ip port -u user:pass\n");
+        exit(1);
+    }
+
 
     initUsers();
     char * ip = (argv+1)[0];

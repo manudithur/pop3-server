@@ -2,6 +2,9 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "pop3_actions.h"
 
+#define STAT_BUF 256
+#define LIST_BUF 400
+
 unsigned user_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
     char buf[] = "+OK USER\r\n";
@@ -108,7 +111,7 @@ unsigned stat_handler(selector_key *key){
     snprintf(dirPath, PATH_MAX_LENGTH, "src/mail/");
     snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "%s/", data->username);
     snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "cur/");
-    char resultBuffer[256];
+    char resultBuffer[STAT_BUF];
 
     directory = opendir(dirPath);
     if (directory == NULL) {
@@ -151,8 +154,7 @@ unsigned list_handler(selector_key *key){
     snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "%s/", data->username);
     snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "cur/");
 
-    //Decision de diseño: buffer de 5000 caracteres
-    char resultBuffer[400];
+    char resultBuffer[LIST_BUF];
 
     directory = opendir(dirPath);
     if (directory == NULL) {
@@ -215,7 +217,6 @@ void read_mail_handler(struct selector_key *key){
     readBuffer = buffer_write_ptr(mail_buffer, &readLimit);
 
     readCount = read(email_data->email_fd, readBuffer, readLimit);
-    buffer_write_adv(&email_data->bStruct, readCount);
 
 
     if (readCount <= 0){
@@ -230,6 +231,7 @@ void read_mail_handler(struct selector_key *key){
         printf("INFO: Socket %d - finished reading email\n", email_data->email_fd);
         return;
     }
+    buffer_write_adv(&email_data->bStruct, readCount);
 
     //deberia preguntar si el otro puede escribir tambien?
     while(buffer_can_read(mail_buffer) && buffer_can_write(email_data->pStruct)){
