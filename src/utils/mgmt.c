@@ -37,7 +37,6 @@ static unsigned mgmt_check_commands(struct selector_key * key, const commands * 
     client_data * data = ATTACHMENT(key);
     for(int i = 0 ; i < command_amount; i ++){
         if(strcmp(data->command.command, command_list[i].command_name) == 0){
-            printf("ENTRE AL COMANDO %s\n", data->command.command);
             return command_list[i].action(key);
         }
     }
@@ -58,7 +57,6 @@ void mgmt_errorHandler(const unsigned state, struct selector_key *key){
 
 void freeAllMgmt(const unsigned state, struct selector_key * key){
     //hace todos los frees
-    printf("ENTRE AL FREE\n");
     client_data * data = ATTACHMENT(key);
     parser_destroy(data->parser);
     free(data->username);
@@ -73,7 +71,6 @@ void freeAllMgmt(const unsigned state, struct selector_key * key){
 
 // TODO: check if return states are correctly managed
 unsigned mgmt_readHandler(struct selector_key * key) {
-    printf("ENTRE AL READ DE MGMT\n");
     client_data * data = ATTACHMENT(key);
 
     size_t readLimit;
@@ -135,13 +132,11 @@ unsigned mgmt_readHandler(struct selector_key * key) {
 
             
             if(retState == ERROR_MGMT){
-                printf("error state\n");
                 retState = data->lastValidState;
             }
             else{
                 data->lastValidState = retState;
             }
-            printf("TERMINE EL READ\n");
             return retState;
         }
     }
@@ -165,7 +160,6 @@ unsigned mgmt_writeHandler(struct selector_key *key){
     stats_update(writeCount,0,0);
 
     if (writeCount <= 0) {
-        printf("error en write\n");
         selector_set_interest_key(key, OP_NOOP);
         return ERROR_MGMT;
     }

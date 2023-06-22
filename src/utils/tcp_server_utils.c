@@ -71,14 +71,12 @@ int setupTCPServerSocket(char * ip, const int service) {
 
         //IPV6 y puerto hardcodeado
         if(setupSocket(ip, service, &localAddr, &addrSize )){
-          printf("problem 0\n");
           return -1;
         }
 
         // Create a TCP socket
         servSock = socket(localAddr.ss_family, SOCK_STREAM, IPPROTO_TCP);
         if (servSock < 0) {
-          printf("problem 1\n");
           return -1;
         }
 
@@ -91,11 +89,9 @@ int setupTCPServerSocket(char * ip, const int service) {
         if (bind(servSock, (struct sockaddr *)&localAddr, addrSize) == 0) {
 
           if(listen(servSock, MAXPENDING) <0){
-            printf("problem 3\n");
           }
 
         } else {
-          printf("problem 2\n");
           close(servSock);
           servSock = -1;
         }

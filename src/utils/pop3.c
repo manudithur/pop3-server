@@ -33,18 +33,21 @@ static const commands command_list_update[UPDATE_COMMAND_AMOUNT] = {
 
 static unsigned check_commands(struct selector_key * key, const commands * command_list, int command_amount){
     client_data * data = ATTACHMENT(key);
+    printf("Socket %d: analyzing command\n", data->fd);
     for(int i = 0 ; i < command_amount; i ++){
         if(strcmp(data->command.command, command_list[i].command_name) == 0){
+            printf("Socket %d: command %s executed\n", data->fd, command_list[i].command_name);
             return command_list[i].action(key);
         }
     }
+    printf("Socket %d: command %s not found\n", data->fd, data->command.command);
     return ERROR_STATE;
 }
 
 void mailDeleter(const unsigned state,struct selector_key * key){
     client_data * data = ATTACHMENT(key);
-
     if (data->username != NULL) {
+        printf("Socket %d: deleting emails\n", data->fd);
         char dirPath[PATH_MAX_LENGTH];
         
         snprintf(dirPath, PATH_MAX_LENGTH, "src/mail/");
@@ -82,13 +85,13 @@ void unregisterHandler(const unsigned state, struct selector_key * key){
     stats_update(writeCount,0,0);
 
     if (writeCount <= 0) {
-        printf("error en write\n");
         return;
     }
 
     buffer_read_adv(&data->wbStruct, writeCount);
     selector_set_interest_key(key, OP_NOOP);
-    printf("NO DEBERIA INTENTAR LEER MAS\n");
+
+    printf("Socket %d: unregistering file descriptor\n", data->fd);
 
     selector_unregister_fd(key->s, key->fd);
 }
@@ -96,6 +99,7 @@ void unregisterHandler(const unsigned state, struct selector_key * key){
 void freeAllPop3(const unsigned state, struct selector_key * key){
     //hace todos los frees
     client_data * data = ATTACHMENT(key);
+    printf("Socket %d: freeing memory\n", data->fd);
     if (data->username != NULL){
         free(data->username);
     }
@@ -120,11 +124,11 @@ void errorHandler(const unsigned state, struct selector_key *key){
         }
     }
     selector_set_interest_key(key, OP_WRITE);
-//    return lastValidState;
 }
 
 // TODO: check if return states are correctly managed
 unsigned readHandler(struct selector_key * key) {
+
     client_data * data = ATTACHMENT(key);
 
     size_t readLimit;
@@ -133,12 +137,14 @@ unsigned readHandler(struct selector_key * key) {
     unsigned retState;
 
     if(!buffer_can_read(&data->rbStruct)){
+        printf("Socket %d: reading\n", key->fd);
         readBuffer = buffer_write_ptr(&data->rbStruct, &readLimit);
         readCount = recv(key->fd, readBuffer, readLimit, 0);
         stats_update(0,readCount,0);
         if (readCount == 0) {
             stats_remove_connection();
             selector_set_interest_key(key, OP_NOOP);
+            printf("Socket %d: connection closed by peer\n", data->fd);
             return UPDATE_STATE;
         }
         buffer_write_adv(&data->rbStruct, readCount);
@@ -199,7 +205,6 @@ unsigned readHandler(struct selector_key * key) {
            
 
             if(retState == ERROR_STATE){
-                printf("error state\n");
                 retState = data->lastValidState;
             }
             else{
@@ -209,20 +214,9 @@ unsigned readHandler(struct selector_key * key) {
         }
     }
  
-    //selector_set_interest_key(key, OP_WRITE);
     return data->stm.current->state;
 }
 
-//void greetingHandler(const unsigned state, struct selector_key *key){
-//	client_data * data = ATTACHMENT(key);
-//    char buf[] = {"+OK POP3 server ready\r\n"};
-//    for (int i = 0; buf[i] != '\0'; i++){
-//        if (buffer_can_write(&data->wbStruct)){
-//            buffer_write(&data->wbStruct,buf[i]);
-//        }
-//    }
-//    return ;
-//}
 
 unsigned writeHandler(struct selector_key *key){
      client_data * data = ATTACHMENT(key);
@@ -236,10 +230,11 @@ unsigned writeHandler(struct selector_key *key){
     stats_update(writeCount,0,0);
 
     if (writeCount <= 0) {
-        printf("error en write\n");
         selector_set_interest_key(key, OP_NOOP);
         return ERROR_STATE;
     }
+
+    printf("Socket %d: writing\n", key->fd);
 
     buffer_read_adv(&data->wbStruct, writeCount);
 

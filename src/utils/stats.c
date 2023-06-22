@@ -8,6 +8,7 @@ static sv_stats * stats = NULL;
 
 void stats_init(){
     if(stats != NULL) return;
+    remove("logs");
     stats = malloc(sizeof(sv_stats));
     stats->totalBytesSent = 0;
     stats->totalBytesReceived = 0;
@@ -48,7 +49,6 @@ void stats_log_connection(const char* ip){
     FILE* file = fopen("logs", "a");  // Open the file in append mode
 
     if (file == NULL) {
-        printf("Error opening  logs file\n");
         return;
     }
 
@@ -74,7 +74,6 @@ void stats_log_user(const char* user){
     FILE* file = fopen("logs", "a");  // Open the file in append mode
 
     if (file == NULL) {
-        printf("Error opening logs file\n");
         return;
     }
 

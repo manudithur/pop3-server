@@ -35,12 +35,8 @@ void defaultUsers(){
 
 // Elimina a un usuario
 int deleteUser(char * username){
-    printf("DELETE USER\n");
-    printf("USERNAME: %s\n", username);
-    printf("COUNT: %d\n", usersStruct->count);
     for(int i = 0; i < usersStruct->count; i++){
         if(strcmp(usersStruct->users[i].username, username) == 0){
-            printf("FOUND\n");
             if(usersStruct->users[i].isAdmin == ADMIN_USER)
                 return ADMIN_DELETE_ATTEMPT;
 
@@ -104,12 +100,8 @@ int validateAdminCredentials(char * username, char * password){
     if(username[0] == '\0'|| password[0] == '\0')
         return INVALID_CREDENTIALS;
 
-    printf("VALIDATE ADMIN CREDENTIALS\n");
-    printf("username: %s\n", username);
-    printf("password: %s\n", password);
 
     for(int i = 0; i < usersStruct->count; i++){
-        printf("Is admin: %s\n", usersStruct->users[i].isAdmin == ADMIN_USER ? "TRUE" : "FALSE");
         if(strcmp(usersStruct->users[i].username, username) == 0 && strcmp(usersStruct->users[i].password, password) == 0 && usersStruct->users[i].isAdmin == ADMIN_USER)
             return VALID_CREDENTIALS;
     }

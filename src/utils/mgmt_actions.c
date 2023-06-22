@@ -225,7 +225,6 @@ unsigned mgmt_delete_user_handler(selector_key *key){
     char buf[1000] = {'\0'};
     
     int deleteRes = deleteUser(data->command.arg1);
-    printf("deleteRes: %d\n", deleteRes);
     if(deleteRes == USER_DELETED){
         sprintf(buf, "+OK DELETE_USER\n");
         sprintf(buf + strlen(buf), "USER DELETED SUCCESSFULLY");
