@@ -413,7 +413,6 @@ unsigned noop_handler(selector_key *key){
             buffer_write(&data->wbStruct,buf[i]);
         }
     }
-    stats_print();
     return data->stm.current->state;
 }
 
