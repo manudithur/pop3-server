@@ -240,8 +240,9 @@ void handleNewConnection(struct selector_key * key){
 	client->stm.states = states;
 	stm_init(&client->stm);
     client->lastValidState = AUTH_STATE;
+    char * welcome = "+OK POP3 server ready v1.0\r\n";
 
-    send(client->fd, "+OK POP3 server ready\r\n", strlen("+OK POP3 server ready\r\n"), MSG_NOSIGNAL);
+    send(client->fd, welcome, strlen(welcome), MSG_NOSIGNAL);
 
 
     int register_status = selector_register(key->s, clntSock, &pop3_handler, OP_READ, client);
