@@ -1,4 +1,4 @@
-CC = gcc
+CC=clang
 CFLAGS = -Wall -Wextra -pedantic -Isrc/include
 
 SRCFILES = $(wildcard *.c)

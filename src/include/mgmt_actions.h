@@ -1,5 +1,5 @@
 #ifndef MGMT_H
-#define _MGMT_H_
+#define MGMT_H
 
 #include "pop3_parser_impl.h"
 #include "pop3.h"

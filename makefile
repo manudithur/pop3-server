@@ -1,4 +1,4 @@
-CC = gcc
+CC=clang
 CFLAGS = --std=c11 -D_DEFAULT_SOURCE -fsanitize=address -pedantic -pedantic-errors -Wall -Wextra -Wno-unused-parameter -Wno-implicit-fallthrough -D_POSIX_C_SOURCE=200112L -pthread -g
 SRC_DIR = src
 PATCH_DIR = patches
