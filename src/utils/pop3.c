@@ -40,7 +40,7 @@ static unsigned check_commands(struct selector_key * key, const commands * comma
             return command_list[i].action(key);
         }
     }
-    printf("Socket %d: command %s not found\n", data->fd, command_list[i].command_name);
+    printf("Socket %d: command %s not found\n", data->fd, data->command.command);
     return ERROR_STATE;
 }
 
