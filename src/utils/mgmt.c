@@ -35,11 +35,14 @@ static const commands command_list_transaction[ACTIVE_MGMT_COMMAND_AMOUNT] = {
 
 static unsigned mgmt_check_commands(struct selector_key * key, const commands * command_list, int command_amount){
     client_data * data = ATTACHMENT(key);
+    printf("INFO: Socket %d - analyzing command\n", data->fd);
     for(int i = 0 ; i < command_amount; i ++){
         if(strcmp(data->command.command, command_list[i].command_name) == 0){
+            printf("INFO: Socket %d - command %s executed\n", data->fd, command_list[i].command_name);
             return command_list[i].action(key);
         }
     }
+    printf("INFO: Socket %d - command %s not found\n", data->fd, data->command.command);
     return ERROR_MGMT;
 }
 
@@ -58,6 +61,7 @@ void mgmt_errorHandler(const unsigned state, struct selector_key *key){
 void freeAllMgmt(const unsigned state, struct selector_key * key){
     //hace todos los frees
     client_data * data = ATTACHMENT(key);
+    printf("INFO: Socket %d - freeing memory\n", data->fd);
     parser_destroy(data->parser);
     free(data->username);
     data->parser = NULL;
@@ -79,12 +83,14 @@ unsigned mgmt_readHandler(struct selector_key * key) {
     unsigned retState;
 
     if(!buffer_can_read(&data->rbStruct)){
+        printf("INFO: Socket %d - reading\n", key->fd);
         readBuffer = buffer_write_ptr(&data->rbStruct, &readLimit);
         readCount = recv(key->fd, readBuffer, readLimit, 0);
         stats_update(0,readCount,0);
         if (readCount == 0) {
             stats_remove_connection();
             selector_set_interest_key(key, OP_NOOP);
+            printf("INFO: Socket %d - connection closed by peer\n", data->fd);
             return UPDATE_MGMT;
         }
         buffer_write_adv(&data->rbStruct, readCount);
