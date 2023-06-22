@@ -49,7 +49,6 @@ void stats_log_connection(const char* ip){
     FILE* file = fopen("logs", "a");  // Open the file in append mode
 
     if (file == NULL) {
-        printf("Error opening  logs file\n");
         return;
     }
 
@@ -62,7 +61,6 @@ void stats_log_user(const char* user){
     FILE* file = fopen("logs", "a");  // Open the file in append mode
 
     if (file == NULL) {
-        printf("Error opening logs file\n");
         return;
     }
 

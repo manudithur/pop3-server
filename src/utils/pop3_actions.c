@@ -217,7 +217,6 @@ void read_mail_handler(struct selector_key *key){
 
 
     if (readCount <= 0){
-        printf("llegue\n");
         buffer_write(email_data->pStruct, '\r');
         buffer_write(email_data->pStruct, '\n');
         buffer_write(email_data->pStruct, '.');

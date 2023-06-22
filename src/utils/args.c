@@ -93,11 +93,10 @@ parseAndAddUsers(const int argc, char ** argv){
             fprintf(stderr, "Password not found for user number: %d\n", i);
             exit(1);
         } else {
-            if(addUser(argv[i], p) != USER_ADDED){
+            if(addUser(argv[i], p) != USER_ADDED) {
                 fprintf(stderr, "Problem adding user: %s\n", argv[i]);
                 exit(1);
-            } else
-                printf("ADDED USERNAME: %s | PASSWORD: %s\n", argv[i], p);
+            }
         }
     }   
 }
