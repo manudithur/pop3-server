@@ -137,8 +137,10 @@ unsigned mgmt_status_handler(selector_key *key){
     sprintf(buf, "+OK STATUS\nBYTES SENT = %ld\nBYTES RECEIVED = %ld\n", getTotalBytesSent(), getTotalBytesReceived());
     sprintf(buf + strlen(buf), "LIVE CONECTIONS = %ld\n", getConcurrentConnections());
     sprintf(buf + strlen(buf), "HISTORIC CONECTIONS = %ld\n", getTotalConnections());
-    sprintf(buf + strlen(buf), "TOTAL USERS = %ld\r\n", users->count);
+    sprintf(buf + strlen(buf), "TOTAL USERS = %d\n", users->count);
 
+    sprintf(buf + strlen(buf), "MAX USERS = %d\n", getMaxUsers());
+    sprintf(buf + strlen(buf), "MAX CONNECTIONS = %d\r\n", getMaxConnections());
     //Agregar la data de la configuracion.
 
     for (int i = 0; buf[i] != '\0'; i++){
@@ -156,13 +158,14 @@ unsigned mgmt_max_users_handler(selector_key *key){
         return ERROR_MGMT;
 
     char buf[1000] = {'\0'};
-    sprintf(buf, "+OK MAX_USERS\n");
     int maxUsers = setMaxUsers(atoi(data->command.arg1));
 
-    if(maxUsers == MAX_USERS_CHANGED_SUCCESSFULLY)
-        sprintf(buf + strlen(buf), "MAX USERS CHANGED SUCCESSFULLY\n");
-    else if(maxUsers = INVALID_MAX_USERS){
-        sprintf(buf + strlen(buf), "INVALID MAX USERS\n");
+    if(maxUsers == MAX_USERS_CHANGED_SUCCESSFULLY){
+        sprintf(buf, "+OK MAX_USERS\n");
+        sprintf(buf + strlen(buf), "MAX USERS CHANGED SUCCESSFULLY");
+    }
+    else if(maxUsers == INVALID_MAX_USERS){
+        sprintf(buf + strlen(buf), "-ERR INVALID MAX USERS");
     }
     
     sprintf(buf + strlen(buf), "\r\n");
@@ -184,7 +187,7 @@ unsigned mgmt_max_users_handler(selector_key *key){
      changeMaxConnections(newMax);
 
      char buf[1000] = {'\0'};
-     sprintf(buf, "+OK MAX_CONNECTIONS CHANGED\n");
+     sprintf(buf, "+OK MAX_CONNECTIONS CHANGED\r\n");
      for (int i = 0; buf[i] != '\0'; i++){
          if (buffer_can_write(&data->wbStruct)){
              buffer_write(&data->wbStruct,buf[i]);
@@ -206,7 +209,7 @@ void applyTimeout(int time){
      applyTimeout(timeoutTime);
 
      char buf[1000] = {'\0'};
-     sprintf(buf, "+OK TIMEOUT COMPLETED\n");
+     sprintf(buf, "+OK TIMEOUT COMPLETED\r\n");
      for (int i = 0; buf[i] != '\0'; i++){
          if (buffer_can_write(&data->wbStruct)){
              buffer_write(&data->wbStruct,buf[i]);
@@ -220,15 +223,17 @@ unsigned mgmt_delete_user_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
     
     char buf[1000] = {'\0'};
-    sprintf(buf, "+OK DELETE_USER\n");
+    
     int deleteRes = deleteUser(data->command.arg1);
     printf("deleteRes: %d\n", deleteRes);
-    if(deleteRes == USER_DELETED)
-        sprintf(buf + strlen(buf), "USER DELETED SUCCESSFULLY\n");
+    if(deleteRes == USER_DELETED){
+        sprintf(buf, "+OK DELETE_USER\n");
+        sprintf(buf + strlen(buf), "USER DELETED SUCCESSFULLY");
+    }
     else if(deleteRes == USER_NOT_FOUND)
-        sprintf(buf + strlen(buf), "USER NOT FOUND\n");
+        sprintf(buf + strlen(buf), "-ERR USER NOT FOUND");
     else if (deleteRes == ADMIN_DELETE_ATTEMPT)
-        sprintf(buf + strlen(buf), "ADMIN CANNOT BE DELETED\n");
+        sprintf(buf + strlen(buf), "-ERR ADMIN CANNOT BE DELETED");
 
     
     sprintf(buf + strlen(buf), "\r\n");
@@ -246,17 +251,18 @@ unsigned mgmt_add_user_handler(selector_key *key){
     
     char buf[1000] = {'\0'};
 
-    sprintf(buf, "+OK ADD_USER\n");
     int addRes = addUser(data->command.arg1, data->command.arg2);
 
-    if(addRes == USER_ADDED)
-        sprintf(buf + strlen(buf), "USER ADDED SUCCESSFULLY\n");
+    if(addRes == USER_ADDED){
+        sprintf(buf, "+OK ADD_USER\n");
+        sprintf(buf + strlen(buf), "USER ADDED SUCCESSFULLY");
+    }
     else if(addRes == USER_ALREADY_EXISTS)
-        sprintf(buf + strlen(buf), "USER ALREADY EXISTS\n");
+        sprintf(buf + strlen(buf), "-ERR USER ALREADY EXISTS");
     else if (addRes == MAX_USERS_REACHED)
-        sprintf(buf + strlen(buf), "MAX USERS REACHED\n");
+        sprintf(buf + strlen(buf), "-ERR MAX USERS REACHED");
     else if(addRes == INVALID_CREDENTIALS)
-        sprintf(buf + strlen(buf), "INVALID CREDENTIALS\n");
+        sprintf(buf + strlen(buf), "-ERR INVALID CREDENTIALS");
     
     sprintf(buf + strlen(buf), "\r\n");
 
@@ -273,13 +279,15 @@ unsigned mgmt_reset_user_password_handler(selector_key *key){
     
     char buf[1000] = {'\0'};
 
-    sprintf(buf, "+OK RESET_USER_PASSWORD\n");
+    
     int resetRes = resetUserPassword(data->command.arg1);
 
-    if(resetRes == PASSWORD_CHANGED_SUCCESSFULLY)
-        sprintf(buf + strlen(buf), "PASSWORD RESET SUCCESSFULLY\n");
+    if(resetRes == PASSWORD_CHANGED_SUCCESSFULLY){
+        sprintf(buf, "+OK RESET_USER_PASSWORD\n");
+        sprintf(buf + strlen(buf), "PASSWORD RESET SUCCESSFULLY");
+    }
     else if(resetRes == PASSWORD_CHANGE_FAILED)
-        sprintf(buf + strlen(buf), "USER NOT FOUND\n");
+        sprintf(buf + strlen(buf), "-ERR USER NOT FOUND");
     
     sprintf(buf + strlen(buf), "\r\n");
 
@@ -296,13 +304,14 @@ unsigned mgmt_change_password_handler(selector_key *key){
     
     char buf[1000] = {'\0'};
 
-    sprintf(buf, "+OK CHANGE_PASSWORD\n");
     int changeRes = changePassword(data->username, data->command.arg1, data->command.arg2);
 
-    if(changeRes == PASSWORD_CHANGED_SUCCESSFULLY)
-        sprintf(buf + strlen(buf), "PASSWORD CHANGED SUCCESSFULLY\n");
+    if(changeRes == PASSWORD_CHANGED_SUCCESSFULLY){
+        sprintf(buf, "+OK CHANGE_PASSWORD\n");
+        sprintf(buf + strlen(buf), "PASSWORD CHANGED SUCCESSFULLY");
+    }
     else if(changeRes == PASSWORD_CHANGE_FAILED)
-        sprintf(buf + strlen(buf), "PASSWORD CHANGE FAILED\n");
+        sprintf(buf + strlen(buf), "PASSWORD CHANGE FAILED");
     
     sprintf(buf + strlen(buf), "\r\n");
 

@@ -2,7 +2,7 @@
 // Created by Gayba on 6/18/2023.
 //
 
-#include "include/client_actions.h"
+#include "./include/client_actions.h"
 
 void readFromSocket(int socket){
     uint8_t c;

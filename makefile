@@ -18,6 +18,8 @@ TARGET = run
 
 all: $(TARGET)
 
+	@$(MAKE) -C src/admin_monitor
+
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $@
 
@@ -34,13 +36,15 @@ $(OBJ_DIR)/%.o: $(PARSERS_DIR)/%.c
 	$(CC) $(CFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
 
 # $(OBJ_DIR)/%.o: $(TESTS_DIR)/%.c
-# 	@mkdir -p $(@D)
-# 	$(CC) $(CFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
+#     @mkdir -p $(@D)
+#     $(CC) $(CFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
 
 .PHONY: clean
 
 clean:
+	@$(MAKE) -C src/admin_monitor clean
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
+	rm -f  $(TARGET)
 
 .PHONY: patch
 

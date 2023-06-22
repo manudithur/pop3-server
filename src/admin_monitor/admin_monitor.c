@@ -67,7 +67,6 @@ int getCommandIndex(char *commandName) {
 completeCommand *parse(int argc, char *argv[]) {
 
     completeCommand *command = malloc(sizeof(completeCommand));
-
     strncpy(command->version, argv[1], strlen(argv[1]));
     strncpy(command->username, argv[2], strlen(argv[2]));
     strncpy(command->password, argv[3], strlen(argv[3]));
@@ -126,10 +125,11 @@ int main(int argc, char *argv[]) {
     }
 
     //Crear socket
+
     int socket =  createSocket("127.0.0.1", "6000");
 
     commandDispatcher(command->commandIndex, command->commandArgs, socket,command->username,command->password);
-    
+
     //Cerrar socket
     closeSocket(socket);
 

@@ -8,7 +8,7 @@
 static TUsers * usersStruct;
 static int INITIALIZED = 0;
 
-static int MAX_USERS = 10;
+static int MAX_USERS = 500;
 
 // Inicializa la estructura de usuarios
 void initUsers(){
@@ -163,6 +163,10 @@ int setMaxUsers(int maxUsers){
 
     MAX_USERS = maxUsers;
     return MAX_USERS_CHANGED_SUCCESSFULLY;
+}
+
+int getMaxUsers(){
+    return MAX_USERS;
 }
 
 // Resetea la contrasena de un usuario (password = username)

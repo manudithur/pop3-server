@@ -73,6 +73,9 @@ int changePassword(char * username, char * oldPassword, char * newPassword);
 // Actualiza la cantidad maxima de usuarios
 int setMaxUsers(int maxUsers);
 
+// Retorna la cantidad maxima de usuarios
+int getMaxUsers();
+
 // Resetea la contrasena de un usuario (password = username)
 int resetUserPassword(char * user);
 
