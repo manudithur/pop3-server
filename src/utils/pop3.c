@@ -234,7 +234,6 @@ unsigned writeHandler(struct selector_key *key){
         return ERROR_STATE;
     }
 
-    printf("Socket %d: writing\n", key->fd);
 
     buffer_read_adv(&data->wbStruct, writeCount);
 
