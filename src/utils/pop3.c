@@ -46,18 +46,20 @@ void mailDeleter(const unsigned state,struct selector_key * key){
 
     if (data->username != NULL) {
         char dirPath[PATH_MAX_LENGTH];
+        
         snprintf(dirPath, PATH_MAX_LENGTH, "src/mail/");
         snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "%s/", data->username);
         snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "cur/");
 
         DIR* directory = opendir(dirPath);
         struct dirent* file;
+        size_t maxPathLength = PATH_MAX_LENGTH + sizeof(file->d_name);
         int emailIndex = 0;
-
+        
         while ((file = readdir(directory)) != NULL) {
             if (strcmp(file->d_name, ".") != 0 && strcmp(file->d_name, "..") != 0 && data->emailDeleted[emailIndex++] == true) {
-                char file_path[100];
-                snprintf(file_path, sizeof(file_path), "%s/%s", dirPath, file->d_name);
+                char file_path[maxPathLength];
+                snprintf(file_path, maxPathLength, "%s/%s", dirPath, file->d_name);
                 remove(file_path);
             }
         }

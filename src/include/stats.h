@@ -49,6 +49,10 @@ void stats_log_user(const char* user);
 
 void stats_log_connection(const char* ip);
 
+void stats_log_user_logout(const char* user);
+
+void stats_log_disconnection(const char* ip);
+
 
 
 

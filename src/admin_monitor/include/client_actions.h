@@ -10,19 +10,19 @@
 #define MAX_RESPONSE_LENGTH 1000
 #define MAX_PARAM_LENGTH 100
 
-void help(char argv[][MAX_PARAM_LENGTH]);
+void help();
 void historicConnections(int sock, char argv[][MAX_PARAM_LENGTH],char * username,char * password);
-void liveConnections(int sock, char argv[][MAX_PARAM_LENGTH],char * username,char *password);
-void users(int sock, char argv[][MAX_PARAM_LENGTH],char * username,char * password);
-void status(int sock, char argv[][MAX_PARAM_LENGTH],char * username,char *password);
+void liveConnections(int sock, char * username,char *password);
+void users(int sock,char * username,char * password);
+void status(int sock,char * username,char *password);
 void maxUsers(int sock, char argv[][MAX_PARAM_LENGTH],char * username,char *password);
 void maxConnections(int sock, char argv[][MAX_PARAM_LENGTH],char * username,char *password);
 void timeout(int sock, char argv[][MAX_PARAM_LENGTH],char * username,char *password);
 void deleteUser(int sock, char argv[][MAX_PARAM_LENGTH],char * username,char *password);
 void addUser(int sock, char argv[][MAX_PARAM_LENGTH],char * username,char *password);
 void resetUserPassword(int sock, char argv[][MAX_PARAM_LENGTH],char * username,char *password);
-void bytesTransferred(int sock, char argv[][MAX_PARAM_LENGTH],char * username,char *password);
+void bytesTransferred(int sock,char * username,char *password);
 void changeUserPassword(int sock, char argv[][MAX_PARAM_LENGTH],char * username,char * password);
-void viewUserLogs(char argv[][MAX_PARAM_LENGTH]);
+void viewUserLogs();
 
 #endif //POP3_SERVER_CLIENT_ACTIONS_H

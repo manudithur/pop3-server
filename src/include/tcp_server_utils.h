@@ -72,7 +72,6 @@ typedef struct mgmt_data{
 
 
 
-static int setupSocket(char* addr, unsigned short port, void* res, socklen_t* socklenResult);
 
 // Create, bind, and listen a new TCP server socket
 int setupTCPServerSocket(char * ip, const int service);

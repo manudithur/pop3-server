@@ -1,7 +1,3 @@
-//
-// Created by Gayba on 6/18/2023.
-//
-
 #include "./include/client_actions.h"
 
 void readFromSocket(int socket){
@@ -12,7 +8,7 @@ void readFromSocket(int socket){
     }
 }
 
-void help(char argv[][MAX_COMMAND_LENGTH]) {
+void help() {
     putchar('\n');
     printf("Available commands:\n");
     printDivider();
@@ -34,28 +30,28 @@ void historicConnections(int sock, char argv[][MAX_COMMAND_LENGTH],char * userna
     readFromSocket(sock);
 }
 
-void liveConnections(int sock, char argv[][MAX_COMMAND_LENGTH],char * username,char * password) {
+void liveConnections(int sock,char * username,char * password) {
     char command[MAX_COMMAND_LENGTH];
     sprintf(command, "USER %s\r\nPASS %s\r\nLIVE_CONNEC\r\nQUIT\r\n", username, password);
     sendCommand(sock, command);
     readFromSocket(sock);
 }
 
-void bytesTransferred(int sock, char argv[][MAX_COMMAND_LENGTH],char * username,char * password) {
+void bytesTransferred(int sock,char * username,char * password) {
     char command[MAX_COMMAND_LENGTH];
     sprintf(command, "USER %s\r\nPASS %s\r\nBYTES_TRANS\r\nQUIT\r\n", username, password);
     sendCommand(sock, command);
     readFromSocket(sock);
 }
 
-void users(int sock, char argv[][MAX_COMMAND_LENGTH],char * username,char * password){
+void users(int sock,char * username,char * password){
     char command[MAX_COMMAND_LENGTH];
     sprintf(command, "USER %s\r\nPASS %s\r\nUSERS\r\nQUIT\r\n", username, password);
     sendCommand(sock, command);
     readFromSocket(sock);
 }
 
-void status(int sock, char argv[][MAX_COMMAND_LENGTH],char * username,char * password){
+void status(int sock,char * username,char * password){
     char command[MAX_COMMAND_LENGTH];
     sprintf(command, "USER %s\r\nPASS %s\r\nSTATUS\r\nQUIT\r\n", username, password);
     sendCommand(sock, command);
@@ -111,7 +107,7 @@ void changeUserPassword(int sock, char argv[][MAX_COMMAND_LENGTH],char * usernam
     readFromSocket(sock);
 }
 
-void viewUserLogs(char argv[][MAX_COMMAND_LENGTH]){
+void viewUserLogs(){
     FILE* file;
     int c;
 

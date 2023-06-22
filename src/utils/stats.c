@@ -52,7 +52,20 @@ void stats_log_connection(const char* ip){
         return;
     }
 
-    fprintf(file, "-\"%s\" has been connected\n", ip);
+    fprintf(file, "-\"%s\" has connected to the server\n", ip);
+    fclose(file);
+}
+
+void stats_log_disconnection(const char* ip){
+    
+    FILE* file = fopen("logs", "a");  // Open the file in append mode
+
+    if (file == NULL) {
+        printf("Error opening logs file\n");
+        return;
+    }
+
+    fprintf(file, "-\"%s\" has disconnected from the server\n", ip);
     fclose(file);
 }
 
@@ -66,6 +79,19 @@ void stats_log_user(const char* user){
     }
 
     fprintf(file, "-%s has logged in\n", user);
+    fclose(file);
+}
+
+void stats_log_user_logout(const char* user){
+    
+    FILE* file = fopen("logs", "a");  // Open the file in append mode
+
+    if (file == NULL) {
+        printf("Error opening logs file\n");
+        return;
+    }
+
+    fprintf(file, "-%s has logged out\n", user);
     fclose(file);
 }
 

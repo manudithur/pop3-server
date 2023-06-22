@@ -112,9 +112,10 @@ unsigned stat_handler(selector_key *key){
     if (directory == NULL) {
         return ERROR_STATE;
     }
+    size_t maxPathLength = PATH_MAX_LENGTH + sizeof(entry->d_name);
     while ((entry = readdir(directory)) != NULL) {
-        char filePath[PATH_MAX_LENGTH];
-        snprintf(filePath, PATH_MAX_LENGTH, "%s/%s", dirPath, entry->d_name);
+        char filePath[maxPathLength];
+        snprintf(filePath, maxPathLength, "%s/%s", dirPath, entry->d_name);
         if (stat(filePath, &fileStat) == 0) {
         if (S_ISREG(fileStat.st_mode)) {
             if (data->emailDeleted[index++] == false){
@@ -128,7 +129,7 @@ unsigned stat_handler(selector_key *key){
     closedir(directory);
 
     snprintf(resultBuffer, sizeof(resultBuffer), "+OK %d %lld\r\n", count, totalSize);
-    for(int i = 0; i < strlen(resultBuffer); i++){
+    for(size_t i = 0; i < strlen(resultBuffer); i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,resultBuffer[i]);
         }
@@ -141,7 +142,6 @@ unsigned list_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
     struct dirent* entry;
     struct stat fileStat;
-    long long int totalSize = 0;
     int count = 0;
     int index = 0;
     char dirPath[PATH_MAX_LENGTH];
@@ -156,16 +156,16 @@ unsigned list_handler(selector_key *key){
     if (directory == NULL) {
         return ERROR_STATE;
     }
-
+    size_t maxPathLength = PATH_MAX_LENGTH + sizeof(entry->d_name);
     snprintf(resultBuffer, sizeof(resultBuffer), "+OK LIST\n");
     while ((entry = readdir(directory)) != NULL) {
-        char filePath[PATH_MAX_LENGTH];
-        snprintf(filePath, PATH_MAX_LENGTH, "%s/%s", dirPath, entry->d_name);
+        char filePath[maxPathLength];
+        snprintf(filePath, maxPathLength, "%s/%s", dirPath, entry->d_name);
         if (stat(filePath, &fileStat) == 0) {
             if (S_ISREG(fileStat.st_mode)) {
                 if (data->emailDeleted[index++] == false){
                     count++;
-                    snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer), "%d %lld\n", count, fileStat.st_size);
+                    snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer), "%d %ld\n", count, fileStat.st_size);
                 }
 
             }
@@ -175,7 +175,7 @@ unsigned list_handler(selector_key *key){
     closedir(directory);
 //    snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer), "\r\n");
 
-    for(int i = 0; i < strlen(resultBuffer); i++){
+    for(size_t i = 0; i < strlen(resultBuffer); i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,resultBuffer[i]);
         }
@@ -303,7 +303,8 @@ unsigned retr_handler(selector_key *key){
      struct dirent *entry;
     int fileCount = 0;
     int index = 0;
-    char filePath[PATH_MAX_LENGTH];
+    size_t maxPathLength = PATH_MAX_LENGTH + sizeof(entry->d_name);
+    char filePath[maxPathLength];
     while ((entry = readdir(dir)) != NULL) {
         // Ignore "." and ".." directories
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
@@ -311,8 +312,7 @@ unsigned retr_handler(selector_key *key){
         if (data->emailDeleted[index++] == false){
             if (fileCount == targetFileIndex) {
                 // Found the desired file
-
-                snprintf(filePath, PATH_MAX_LENGTH, "%s%s", dirPath, entry->d_name);
+                snprintf(filePath, maxPathLength, "%s%s", dirPath, entry->d_name);
                 fileCount++;
                 break;
             }
@@ -326,8 +326,6 @@ unsigned retr_handler(selector_key *key){
     }
 
     closedir(dir);
-    //printf("retr handler\n");
-    size_t writeLimit;
     email * email_data = malloc(sizeof(email));
     email_data->email_fd = open(filePath, O_RDONLY);
     email_data->parent_fd = data->fd;
@@ -340,9 +338,8 @@ unsigned retr_handler(selector_key *key){
             }
     }
     char aux[50] = {0};
-    uint8_t * writeBuffer = buffer_write_ptr(&data->wbStruct, &writeLimit );
     snprintf(aux, sizeof(aux), "+OK %lld octets\r\n", totalSize);
-    for(int i = 0; i < strlen(aux); i++){
+    for(size_t i = 0; i < strlen(aux); i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,aux[i]);
         }
@@ -372,8 +369,6 @@ unsigned dele_handler(selector_key *key){
             buffer_write(&data->wbStruct,buf[i]);
         }
     }
-    DIR *dir;
-    struct dirent *entry;
     int index = 0;
     for (int i = 0; i < data->emailCount; i++)
     {

@@ -9,23 +9,23 @@
 void commandDispatcher(int commandIndex, char argv[][MAX_COMMAND_LENGTH], int sock, char * username, char * password) {
     switch (commandIndex) {
         case 0:
-            help(argv);
+            help();
             break;
         //make all the cases for the commands calling a function passing argv
          case 1:
             historicConnections(sock, argv, username, password);
             break;
          case 2:
-            liveConnections(sock,argv, username, password);
+            liveConnections(sock, username, password);
             break;
          case 3:
-            bytesTransferred(sock,argv, username, password);
+            bytesTransferred(sock, username, password);
             break;
          case 4:
-            users(sock,argv, username, password);
+            users(sock, username, password);
             break;
          case 5:
-            status(sock,argv, username, password);
+            status(sock, username, password);
             break;
          case 6:
             maxUsers(sock,argv, username, password);
@@ -49,7 +49,7 @@ void commandDispatcher(int commandIndex, char argv[][MAX_COMMAND_LENGTH], int so
             changeUserPassword(sock, argv, username, password);
             break;
         case 13:
-            viewUserLogs(argv);
+            viewUserLogs();
             break;
         default:
             printf("NOT IMPLEMENTED YET\n");

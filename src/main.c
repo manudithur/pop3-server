@@ -39,7 +39,6 @@ int main(int argc , char *argv[]){
     close(STDIN_FILENO);
 
     // Creamos el selector
-    const char* err_msg = NULL;
     selector_status ss = SELECTOR_SUCCESS;
     fd_selector selector = NULL;
 
@@ -119,7 +118,7 @@ int main(int argc , char *argv[]){
         }
     }
 
-    finish:
+ 
     remove("../logs");
     selector_destroy(selector);
     selector_close();

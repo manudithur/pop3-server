@@ -83,7 +83,9 @@ int setupTCPServerSocket(char * ip, const int service) {
         }
 
         //Ver codigo Marcelo
-        if( setsockopt(servSock, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0 );
+        if( setsockopt(servSock, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0 ){
+            //TODO: ERROR?
+        }
 
         // Bind to ALL the address and set socket to listen
         if (bind(servSock, (struct sockaddr *)&localAddr, addrSize) == 0) {
@@ -105,24 +107,17 @@ int setupTCPServerSocket(char * ip, const int service) {
 
 static void pop3_read(struct selector_key *key) {
 	struct state_machine* stm = &ATTACHMENT(key)->stm;
-    const enum pop3_states st = stm_handler_read(stm, key);
-    //if (st == ERROR || st == DONE) {
-        //TODO:cerrar conexion
-    //}
+    stm_handler_read(stm, key);
 }
 
 static void pop3_write(struct selector_key *key) {
 	struct state_machine* stm = &ATTACHMENT(key)->stm;
-    const enum pop3_states st = stm_handler_write(stm, key);
-    //if (st == ERROR || st == DONE) {
-       //TODO:cerrar conexion
-   // }
+    stm_handler_write(stm, key);
 }
 
 static void pop3_close(struct selector_key *key) {
     struct client_data * data = ATTACHMENT(key);
     struct state_machine * stm = &ATTACHMENT(key)->stm;
-    //stm_handler_close(stm, key);
     if (stm != NULL && stm->current != NULL){
         freeAllPop3(stm->current->state, key);
     }
@@ -134,7 +129,7 @@ static void pop3_close(struct selector_key *key) {
 
 static void pop3_block(struct selector_key *key) {
 	struct state_machine * stm = &ATTACHMENT(key)->stm;
-    const enum pop3_states st = stm_handler_block(stm, key);
+    stm_handler_block(stm, key);
 }
 
 static fd_handler pop3_handler = {
@@ -147,7 +142,6 @@ static fd_handler pop3_handler = {
 static struct state_definition states[] = {
 	{
 		.state = AUTH_STATE,
-		//TODO
 		.on_arrival = NULL,
 		.on_read_ready = readHandler,
         .on_write_ready = writeHandler,
@@ -155,7 +149,6 @@ static struct state_definition states[] = {
 	},
 	{
 		.state = TRANSACTION_STATE,
-		//TODO
 		.on_arrival = NULL,
 		.on_read_ready = readHandler,
         .on_write_ready = writeHandler,
@@ -163,15 +156,14 @@ static struct state_definition states[] = {
 	},
 	{
 		.state = UPDATE_STATE,
-		//TODO
 		.on_arrival = mailDeleter,
 		.on_write_ready = writeHandler,
         .on_read_ready = readHandler,
-        .on_departure = NULL, //freeAllPop3
+        .on_departure = NULL, 
 	},
     {
         .state = ERROR_STATE,
-        .on_arrival = errorHandler,  //TODO: manejar error
+        .on_arrival = errorHandler,
         .on_read_ready = readHandler,
         .on_write_ready = writeHandler,
         .on_departure = NULL
@@ -267,18 +259,14 @@ void handleNewConnection(struct selector_key * key){
 
 static void mgmt_read(struct selector_key *key) {
 	struct state_machine* stm = &ATTACHMENT(key)->stm;
-    const enum pop3_states st = stm_handler_read(stm, key);
-    //if (st == ERROR || st == DONE) {
-        //TODO:cerrar conexion
-    //}
+    stm_handler_read(stm, key);
+
 }
 
 static void mgmt_write(struct selector_key *key) {
 	struct state_machine* stm = &ATTACHMENT(key)->stm;
-    const enum pop3_states st = stm_handler_write(stm, key);
-    //if (st == ERROR || st == DONE) {
-       //TODO:cerrar conexion
-   // }
+    stm_handler_write(stm, key);
+ 
 }
 
 static void mgmt_close(struct selector_key *key) {
@@ -296,10 +284,7 @@ struct state_machine* stm = &ATTACHMENT(key)->stm;
 
 static void mgmt_block(struct selector_key *key) {
 	struct state_machine* stm = &ATTACHMENT(key)->stm;
-    const enum pop3_states st = stm_handler_block(stm, key);
-    //if (st == ERROR || st == DONE) {
-        
-    //}
+    stm_handler_block(stm, key);
 }
 
 static fd_handler mgmt_handler = {
