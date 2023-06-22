@@ -8,6 +8,7 @@ static sv_stats * stats = NULL;
 
 void stats_init(){
     if(stats != NULL) return;
+    remove("logs");
     stats = malloc(sizeof(sv_stats));
     stats->totalBytesSent = 0;
     stats->totalBytesReceived = 0;
