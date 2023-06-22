@@ -57,7 +57,8 @@ unsigned user_handler(selector_key *key){
             fclose(destinationFile);
         }
 
-
+        printf("INFO: Socket %d - %s mail directory does not exist\n", data->client_fd, data->username);
+        return UPDATE_STATE;
 
     }
     else{
@@ -91,6 +92,7 @@ unsigned pass_handler(selector_key *key){
         
     }
     stats_log_user(data->username);
+    printf("INFO: Socket %d - %s logged in\n", data->client_fd, data->username);
     return TRANSACTION_STATE;
 }
 
@@ -225,6 +227,7 @@ void read_mail_handler(struct selector_key *key){
         email_data->done = 1;
         selector_set_interest(key->s, email_data->parent_fd, OP_WRITE);
         selector_unregister_fd(key->s, email_data->email_fd);
+        printf("INFO: Socket %d - finished reading email\n", email_data->email_fd);
         return;
     }
 
@@ -374,6 +377,7 @@ unsigned dele_handler(selector_key *key){
         if (data->emailDeleted[i] == false){
             if (n == index){
                 data->emailDeleted[i] = true;
+                printf("INFO: Socket %d - email %d deleted\n", data->fd, n);
                 break;
             }
             index++;
@@ -395,6 +399,7 @@ unsigned rset_handler(selector_key *key){
 
     for (int i = 0; i < data->emailCount; i++){
         data->emailDeleted[i] = false;
+        printf("INFO: Socket %d - deleted emails restored\n", data->fd, n);
     }
 
     return TRANSACTION_STATE;
