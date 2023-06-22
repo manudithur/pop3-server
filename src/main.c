@@ -118,8 +118,6 @@ int main(int argc , char *argv[]){
         }
     }
 
- 
-    remove("../logs");
     selector_destroy(selector);
     selector_close();
     close(serverSocket);
