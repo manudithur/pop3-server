@@ -28,6 +28,7 @@ static int setupSocket(char* addr, unsigned short port, void* res, socklen_t* so
 
     *((struct sockaddr_in6*)res) = sock6;
     *socklenResult = sizeof(struct sockaddr_in6);
+    printf("INFO: socket using IPv6\n");
     return 0;
   }
 
@@ -40,7 +41,8 @@ static int setupSocket(char* addr, unsigned short port, void* res, socklen_t* so
 
   *((struct sockaddr_in*)res) = sock4;
   *socklenResult = sizeof(struct sockaddr_in);
-  return 0;
+    printf("INFO: socket using IPv4\n");
+    return 0;
 }
 
 bool isIp(char * ip){
@@ -69,9 +71,8 @@ int setupTCPServerSocket(char * ip, const int service) {
         socklen_t addrSize = sizeof(localAddr);
 	int servSock = -1;
 
-        //IPV6 y puerto hardcodeado
         if(setupSocket(ip, service, &localAddr, &addrSize )){
-          return -1;
+            return -1;
         }
 
         // Create a TCP socket
@@ -202,12 +203,12 @@ void handleNewConnection(struct selector_key * key){
 
 	int clntSock = accept(key->fd, (struct sockaddr *) &clntAddr, &clntAddrLen);
 	if (clntSock < 0) {
-	//log(ERROR, "accept() failed");
 		return;
 	}
 
 	if (clntSock > max_connections) {
         maxConnectionsReached(clntSock);
+        printf("ERROR: Max connections reached\n");
         close(clntSock);
         return;
     }
@@ -216,9 +217,9 @@ void handleNewConnection(struct selector_key * key){
 	// clntSock is connected to a client!
 	stats_add_connection();
 	printSocketAddress((struct sockaddr *) &clntAddr, addrBuffer);
-	log(INFO, "Handling client %s", addrBuffer);
-    
+
     stats_log_connection(addrBuffer);
+    printf("INFO: New connection from socket %d\n", clntSock);
     
 	struct client_data * client = calloc(1, sizeof(struct client_data));
 	if(client == NULL){
@@ -317,13 +318,15 @@ void handleAdminConnection(struct selector_key * key){
 
     if (clntSock > max_connections) {
         maxConnectionsReached(clntSock);
+        printf("ERROR: Max connections reached\n");
         close(clntSock);
         return;
     }
 
     stats_add_connection();
 	printSocketAddress((struct sockaddr *) &clntAddr, addrBuffer);
-	log(INFO, "Handling client %s", addrBuffer);
+    printf("INFO: New admin connection from socket %d\n", clntSock);
+
 
 
     printSocketAddress((struct sockaddr *) &clntAddr, addrBuffer);
