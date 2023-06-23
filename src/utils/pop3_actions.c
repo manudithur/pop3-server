@@ -30,9 +30,6 @@ unsigned user_handler(selector_key *key){
 
     dir = opendir(dirPath);
 
-    const char * defaultMail1Path = "src/mail/defaults/default_mail1";
-    const char * defaultMail2Path = "src/mail/defaults/default_mail2";
-    const char * defaultMail3Path = "src/mail/defaults/default_mail3";
 
     char destinationFilePath[300];
 
@@ -122,6 +119,15 @@ unsigned stat_handler(selector_key *key){
 unsigned list_handler(selector_key *key){
     DIR* directory;
     client_data * data = ATTACHMENT(key);
+
+    int n = 0;
+    if (data->command.arg1 != '\0')
+        n = atoi(data->command.arg1);
+
+    if (data->command.arg2[0] != '\0' || data->command.arg1[0] != '\0' && (isNumber(data->command.arg1) == false || n > data->emailCount || n <= 0)){
+        return ERROR_STATE;
+    }
+
     struct dirent* entry;
     struct stat fileStat;
     int count = 0;
@@ -137,24 +143,44 @@ unsigned list_handler(selector_key *key){
     if (directory == NULL) {
         return ERROR_STATE;
     }
-    size_t maxPathLength = PATH_MAX_LENGTH + sizeof(entry->d_name);
-    snprintf(resultBuffer, sizeof(resultBuffer), "+OK LIST\r\n");
-    while ((entry = readdir(directory)) != NULL) {
-        char filePath[maxPathLength];
-        snprintf(filePath, maxPathLength, "%s/%s", dirPath, entry->d_name);
-        if (stat(filePath, &fileStat) == 0) {
-            if (S_ISREG(fileStat.st_mode)) {
-                if (data->emailDeleted[index++] == false){
-                    count++;
-                    snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer), "%d %ld\r\n", count, fileStat.st_size);
-                }
 
+    size_t maxPathLength = PATH_MAX_LENGTH + sizeof(entry->d_name);
+
+
+    if (n == 0){
+        snprintf(resultBuffer, sizeof(resultBuffer), "+OK LIST\r\n");
+        while ((entry = readdir(directory)) != NULL) {
+            char filePath[maxPathLength];
+            snprintf(filePath, maxPathLength, "%s/%s", dirPath, entry->d_name);
+            if (stat(filePath, &fileStat) == 0) {
+                if (S_ISREG(fileStat.st_mode)) {
+                    if (data->emailDeleted[index++] == false){
+                        snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer), "%d %ld\r\n", index, fileStat.st_size);
+                    }
+                }
+            }
+        }
+        snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer), ".\r\n");
+    }
+    else{
+        while ((entry = readdir(directory)) != NULL) {
+            char filePath[maxPathLength];
+            snprintf(filePath, maxPathLength, "%s/%s", dirPath, entry->d_name);
+            if (stat(filePath, &fileStat) == 0) {
+                if (S_ISREG(fileStat.st_mode)) {
+                    if (index == n-1 && data->emailDeleted[index] == false){
+                        snprintf(resultBuffer, sizeof(resultBuffer), "+OK %d %ld\r\n", n, fileStat.st_size);
+                        break;
+                    }
+                    else if (index == n-1 && data->emailDeleted[index] == true){
+                        return ERROR_STATE;
+                    }
+                    index++;
+                }
             }
         }
     }
-    snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer), ".\r\n");
     closedir(directory);
-//    snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer), "\r\n");
 
     for(size_t i = 0; i < strlen(resultBuffer); i++){
         if (buffer_can_write(&data->wbStruct)){
@@ -264,16 +290,16 @@ bool isNumber(const char* str) {
     return true;
 }
 
-unsigned retr_handler(selector_key *key){
+unsigned retr_handler(selector_key *key) {
     //TODO:primero deberia fijarme si estan bien los argumentos, si existe el mail etc.
-    client_data * data = ATTACHMENT(key);
+    client_data *data = ATTACHMENT(key);
     struct stat fileStat;
     long long int totalSize = 0;
     char dirPath[PATH_MAX_LENGTH];
     snprintf(dirPath, PATH_MAX_LENGTH, "src/mail/");
     snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "%s/", data->username);
     snprintf(dirPath + strlen(dirPath), PATH_MAX_LENGTH, "cur/");
-    if (data->command.arg2[0] != '\0' || isNumber(data->command.arg1) == false){
+    if (data->command.arg2[0] != '\0' || isNumber(data->command.arg1) == false) {
         return ERROR_STATE;
     }
     int targetFileIndex = atoi(data->command.arg1) -1;
@@ -290,19 +316,20 @@ unsigned retr_handler(selector_key *key){
         // Ignore "." and ".." directories
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
             continue;
-        if (data->emailDeleted[index++] == false){
-            if (fileCount == targetFileIndex) {
+        if (index == targetFileIndex) {
+            if (data->emailDeleted[index] == false) {
                 // Found the desired file
                 snprintf(filePath, maxPathLength, "%s%s", dirPath, entry->d_name);
-                fileCount++;
+                index++;
                 break;
+            } else if (data->emailDeleted[index] == true) {
+                return ERROR_STATE;
             }
-
-            fileCount++;
         }
+        index++;
+        stats_update(0, 0, 1);
     }
-    stats_update(0,0,1);
-    if (fileCount <= targetFileIndex) { 
+    if (index <= targetFileIndex) {
         return ERROR_STATE;
     }
 
@@ -345,21 +372,21 @@ unsigned dele_handler(selector_key *key){
     if (data->command.arg2[0] != '\0' || isNumber(data->command.arg1) == false || n > data->emailCount - 1 || n < 0){
         return ERROR_STATE;
     }
+    for (int i = 0; i < data->emailCount; i++)
+    {
+        if (n == i && data->emailDeleted[i] == false){
+            data->emailDeleted[i] = true;
+            printf("INFO: Socket %d - email %d deleted\n", data->fd, n);
+            break;
+        }
+        else if (n == i && data->emailDeleted[i] == true){
+            printf("INFO: Socket %d - email %d already deleted\n", data->fd, n);
+            return ERROR_STATE;
+        }
+    }
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,buf[i]);
-        }
-    }
-    int index = 0;
-    for (int i = 0; i < data->emailCount; i++)
-    {
-        if (data->emailDeleted[i] == false){
-            if (n == index){
-                data->emailDeleted[i] = true;
-                printf("INFO: Socket %d - email %d deleted\n", data->fd, n);
-                break;
-            }
-            index++;
         }
     }
     return TRANSACTION_STATE;
