@@ -1,6 +1,13 @@
 #ifndef USERS_H_
 #define USERS_H_
 
+
+#include "tcp_server_utils.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
+
 #define IS_CONNECTED 1
 #define IS_DISCONNECTED 0
 

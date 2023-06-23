@@ -11,6 +11,10 @@ Integrantes:
 
 -Tobias Perry
 
+## Documentacion
+
+La documentacion se encuentra dentro de la carpeta "docs" en la raiz. Contamos con un diagrama de flujo y el informe del proyecto.
+
 ## Compilacion
 
 ### Requisitos

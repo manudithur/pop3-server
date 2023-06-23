@@ -1,15 +1,11 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "../include/users.h"
-#include "../include/tcp_server_utils.h"
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-
+#define MAX_CON 509
 static TUsers * usersStruct;
 static int INITIALIZED = 0;
 
-static int MAX_USERS = MAX_CONNECTIONS;
+static int MAX_USERS = MAX_CON;
 
 // Inicializa la estructura de usuarios
 void initUsers(){
@@ -165,7 +161,7 @@ int changePassword(char * username, char * oldPassword, char * newPassword){
 
 // Cambia la cantidad maxima de usuarios
 int setMaxUsers(int maxUsers){
-    if(maxUsers < 0 || maxUsers < usersStruct->count || maxUsers > MAX_CONNECTIONS)
+    if(maxUsers < 0 || maxUsers < usersStruct->count || maxUsers > MAX_CON)
         return INVALID_MAX_USERS;
 
     MAX_USERS = maxUsers;
