@@ -37,30 +37,7 @@ unsigned user_handler(selector_key *key){
     char destinationFilePath[300];
 
     if (dir == NULL){
-        char newDirPath[PATH_MAX_LENGTH] = {0};
-        snprintf(newDirPath, PATH_MAX_LENGTH, "src/mail/%s",data->username);
-        mkdir(newDirPath, 0777);
-        mkdir(dirPath, 0777);
-
-        const char * sourceFiles[DEFAULT_MAIL_COUNT] = {defaultMail1Path, defaultMail2Path, defaultMail3Path};
-        const char * destinationFiles[DEFAULT_MAIL_COUNT] = {"default_mail1", "default_mail2", "default_mail3"};
-        emailCount = 3;
-        for (int i = 0; i < DEFAULT_MAIL_COUNT ; i++){
-            FILE* sourceFile = fopen(sourceFiles[i], "rb");
-
-            snprintf(destinationFilePath, sizeof(destinationFilePath), "%s%s", dirPath, destinationFiles[i]);
-            FILE* destinationFile = fopen(destinationFilePath, "wb");
-
-            int c;
-            while ((c = fgetc(sourceFile)) != EOF) {
-                fputc(c, destinationFile);
-            }
-
-            fclose(sourceFile);
-            fclose(destinationFile);
-        }
-
-        printf("INFO: Socket %d - %s mail directory does not exist\n", data->fd, data->username);
+        printf("ERROR: Socket %d - %s mail directory does not exist\n", data->fd, data->username);
         return UPDATE_STATE;
 
     }
