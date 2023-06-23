@@ -6,7 +6,7 @@
 #define MAXPENDING 5
 #define BUFSIZE 256
 #define MAX_ADDR_BUFFER 128
-#define MAX_CONNECTIONS 1023
+#define MAX_CONNECTIONS 509
 //#define MAX_CONNECTIONS 0
 
 static char addrBuffer[MAX_ADDR_BUFFER];
