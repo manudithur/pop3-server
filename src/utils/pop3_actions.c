@@ -377,11 +377,11 @@ unsigned dele_handler(selector_key *key){
     {
         if (n == i && data->emailDeleted[i] == false){
             data->emailDeleted[i] = true;
-            printf("INFO: Socket %d - email %d deleted\n", data->fd, n);
+            printf("INFO: Socket %d - email %d deleted\n", data->fd, n+1);
             break;
         }
         else if (n == i && data->emailDeleted[i] == true){
-            printf("INFO: Socket %d - email %d already deleted\n", data->fd, n);
+            printf("INFO: Socket %d - email %d already deleted\n", data->fd, n+1);
             return ERROR_STATE;
         }
     }
