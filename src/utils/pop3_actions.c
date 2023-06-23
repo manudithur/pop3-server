@@ -353,6 +353,7 @@ unsigned retr_handler(selector_key *key) {
         }
     }
 
+    free(data->emailptr);
     data->emailptr = email_data;
     buffer_init(&email_data->bStruct, BUFFER_LEN, email_data->buffer);
 
