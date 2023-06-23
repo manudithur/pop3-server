@@ -9,7 +9,7 @@
 static TUsers * usersStruct;
 static int INITIALIZED = 0;
 
-static int MAX_USERS = 500;
+static int MAX_USERS = MAX_CONNECTIONS;
 
 // Inicializa la estructura de usuarios
 void initUsers(){

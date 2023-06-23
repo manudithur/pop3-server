@@ -6,6 +6,8 @@
 
 #include "./include/admin_monitor.h"
 
+#define VERSION "1.0"
+
 void commandDispatcher(int commandIndex, char argv[][MAX_COMMAND_LENGTH], int sock, char * username, char * password) {
     switch (commandIndex) {
         case 0:
@@ -116,6 +118,11 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+    if(strcmp(VERSION, argv[1]) != 0){
+        printf("Invalid version\n");
+        return 0;
+    }
+    
     completeCommand *command = parse(argc, argv);
 
     if (command == NULL) {

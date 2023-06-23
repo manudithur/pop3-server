@@ -31,7 +31,6 @@ unsigned user_handler(selector_key *key){
     dir = opendir(dirPath);
 
 
-    char destinationFilePath[300];
 
     if (dir == NULL){
         printf("ERROR: Socket %d - %s mail directory does not exist\n", data->fd, data->username);
@@ -121,16 +120,15 @@ unsigned list_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
 
     int n = 0;
-    if (data->command.arg1 != '\0')
+    if (data->command.arg1[0] != '\0')
         n = atoi(data->command.arg1);
 
-    if (data->command.arg2[0] != '\0' || data->command.arg1[0] != '\0' && (isNumber(data->command.arg1) == false || n > data->emailCount || n <= 0)){
+    if (data->command.arg2[0] != '\0' || (data->command.arg1[0] != '\0' && (isNumber(data->command.arg1) == false || n > data->emailCount || n <= 0))){
         return ERROR_STATE;
     }
 
     struct dirent* entry;
     struct stat fileStat;
-    int count = 0;
     int index = 0;
     char dirPath[PATH_MAX_LENGTH];
     snprintf(dirPath, PATH_MAX_LENGTH, "src/mail/");
@@ -308,7 +306,6 @@ unsigned retr_handler(selector_key *key) {
         return ERROR_STATE;
     }
      struct dirent *entry;
-    int fileCount = 0;
     int index = 0;
     size_t maxPathLength = PATH_MAX_LENGTH + sizeof(entry->d_name);
     char filePath[maxPathLength];
