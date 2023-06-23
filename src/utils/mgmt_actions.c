@@ -194,10 +194,16 @@ unsigned mgmt_max_users_handler(selector_key *key){
          return ERROR_MGMT;
      }
      int newMax = atoi(data->command.arg1);
-     changeMaxConnections(newMax);
+     int res = changeMaxConnections(newMax);
 
      char buf[1000] = {'\0'};
-     sprintf(buf, "+OK MAX_CONNECTIONS CHANGED\r\n");
+
+     if(res == INVALID_MAX_CONNECTIONS){
+        sprintf(buf, "-ERR INVALID MAX CONNECTIONS\r\n");
+     } else if(res == MAX_CONNECTIONS_CHANGED){
+        sprintf(buf, "+OK MAX_CONNECTIONS CHANGED\r\n");
+     }
+     
      for (int i = 0; buf[i] != '\0'; i++){
          if (buffer_can_write(&data->wbStruct)){
              buffer_write(&data->wbStruct,buf[i]);

@@ -21,10 +21,14 @@
 #include "pop3_actions.h"
 #include "stats.h"
 
+#define MAX_CONNECTIONS 509
 #define BUFFER_LEN 4096
 #define MAX_COMMAND_LEN 40
 #define MAX_ARG_LEN 100
 #define ATTACHMENT(key) ((client_data*)(key)->data)
+
+#define INVALID_MAX_CONNECTIONS -1
+#define MAX_CONNECTIONS_CHANGED 1
 
 extern const struct parser_definition definition;
 
@@ -81,7 +85,7 @@ void handleNewConnection(struct selector_key * key);
 
 void handleAdminConnection(struct selector_key * key);
 
-void changeMaxConnections(int newMax);
+int changeMaxConnections(int newMax);
 
 void maxConnectionsReached(int clntSock);
 

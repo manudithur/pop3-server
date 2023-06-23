@@ -6,7 +6,7 @@
 #define MAXPENDING 5
 #define BUFSIZE 256
 #define MAX_ADDR_BUFFER 128
-#define MAX_CONNECTIONS 509
+
 //#define MAX_CONNECTIONS 0
 
 static char addrBuffer[MAX_ADDR_BUFFER];
@@ -293,8 +293,11 @@ static fd_handler mgmt_handler = {
 };
 
 //TODO: verificar q el numero este bien y devolver int
-void changeMaxConnections(int newMax){
+int changeMaxConnections(int newMax){
+    if(newMax < 0 || newMax > MAX_CONNECTIONS)
+        return INVALID_MAX_CONNECTIONS;
     max_connections = newMax;
+    return MAX_CONNECTIONS_CHANGED;
 }
 
 int getMaxConnections(){

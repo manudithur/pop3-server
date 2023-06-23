@@ -1,6 +1,7 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "../include/users.h"
+#include "../include/tcp_server_utils.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -150,7 +151,7 @@ int changePassword(char * username, char * oldPassword, char * newPassword){
 
 // Cambia la cantidad maxima de usuarios
 int setMaxUsers(int maxUsers){
-    if(maxUsers < 0 || maxUsers < usersStruct->count)
+    if(maxUsers < 0 || maxUsers < usersStruct->count || maxUsers > MAX_CONNECTIONS)
         return INVALID_MAX_USERS;
 
     MAX_USERS = maxUsers;
