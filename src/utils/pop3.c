@@ -125,16 +125,15 @@ void errorHandler(const unsigned state, struct selector_key *key){
 
 // TODO: check if return states are correctly managed
 unsigned readHandler(struct selector_key * key) {
-
     client_data * data = ATTACHMENT(key);
 
+    printf("INFO: Socket %d - reading\n", key->fd);
     size_t readLimit;
     ssize_t readCount;
     uint8_t * readBuffer;
     unsigned retState;
 
     if(!buffer_can_read(&data->rbStruct)){
-        printf("INFO: Socket %d - reading\n", key->fd);
         readBuffer = buffer_write_ptr(&data->rbStruct, &readLimit);
         readCount = recv(key->fd, readBuffer, readLimit, 0);
         stats_update(0,readCount,0);
@@ -149,7 +148,6 @@ unsigned readHandler(struct selector_key * key) {
 
     while(buffer_can_read(&data->rbStruct)) {
         const struct parser_event *ret = parser_feed(data->parser, buffer_read(&data->rbStruct));
-    
 
         if (ret->type == PARSE_COMMAND) {
             data->command.command[data->command.commandLen++] = ret->data[0];
@@ -231,7 +229,6 @@ unsigned writeHandler(struct selector_key *key){
         return ERROR_STATE;
     }
 
-
     buffer_read_adv(&data->wbStruct, writeCount);
 
      if(data->retrRunning && !data->emailptr->done){
@@ -241,8 +238,12 @@ unsigned writeHandler(struct selector_key *key){
      }else if(data->retrRunning){
         selector_set_interest_key(key, OP_READ);
          data->retrRunning =0;
+         if(buffer_can_read(&data->rbStruct)){
+             return readHandler(key);
+         }
          return data->stm.current->state;
      }
+
     selector_set_interest_key(key, OP_READ);
     if(buffer_can_read(&data->rbStruct)){
         return readHandler(key);
