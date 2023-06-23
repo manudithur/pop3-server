@@ -340,7 +340,7 @@ unsigned retr_handler(selector_key *key){
 
 unsigned dele_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
-    char buf[] = {"+OK MESSAGE DELETED\r\n.\r\n"};
+    char buf[] = {"+OK MESSAGE DELETED\r\n"};
     int n = atoi(data->command.arg1) -1;
     if (data->command.arg2[0] != '\0' || isNumber(data->command.arg1) == false || n > data->emailCount - 1 || n < 0){
         return ERROR_STATE;
@@ -369,7 +369,7 @@ unsigned rset_handler(selector_key *key){
     //reset the SMTP connection to the initial state in which the sender
     // and recipient buffers are erased and the connection is ready to begin a new mail transaction.
     client_data * data = ATTACHMENT(key);
-    char buf[] = {"+OK RESET STATE\r\n.\r\n"};
+    char buf[] = {"+OK RESET STATE\r\n"};
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,buf[i]);
@@ -386,7 +386,7 @@ unsigned rset_handler(selector_key *key){
 
 unsigned noop_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
-    char buf[] = {"+OK NOOP\r\n.\r\n"};
+    char buf[] = {"+OK NOOP\r\n"};
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,buf[i]);
@@ -398,7 +398,7 @@ unsigned noop_handler(selector_key *key){
 //Deberia devolver el estado AUTH no?
 unsigned quit_handler(selector_key *key){
     client_data * data = ATTACHMENT(key);
-    char buf[] = {"+OK GOODBYE\r\n.\r\n"};
+    char buf[] = {"+OK GOODBYE\r\n"};
     for (int i = 0; buf[i] != '\0'; i++){
         if (buffer_can_write(&data->wbStruct)){
             buffer_write(&data->wbStruct,buf[i]);
