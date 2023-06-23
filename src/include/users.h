@@ -1,6 +1,9 @@
 #ifndef USERS_H_
 #define USERS_H_
 
+#define IS_CONNECTED 1
+#define IS_DISCONNECTED 0
+
 #define MAX_FIELD_SIZE 30
 
 #define VALID_CREDENTIALS 1
@@ -33,6 +36,7 @@ typedef struct{
     char username[MAX_FIELD_SIZE];
     char password[MAX_FIELD_SIZE];
     int  isAdmin;
+    int isConnected;
 } TUser;
 
 typedef struct{
@@ -84,5 +88,8 @@ TUsers * getUsers();
 
 // Libera toda la memoria utilizada por Users
 void destroyUsers();
+
+//Actualiza el isConnected del usuario
+void disconnectUser(char * username);
 
 #endif

@@ -67,6 +67,7 @@ int addUser(char * username, char * password){
     strncpy(usersStruct->users[usersStruct->count].username, username, strlen(username)+1);
     strncpy(usersStruct->users[usersStruct->count].password, password, strlen(password)+1);
     usersStruct->users[usersStruct->count].isAdmin = STANDARD_USER;
+    usersStruct->users[usersStruct->count].isConnected = IS_DISCONNECTED;
 
     usersStruct->count++;
     return USER_ADDED;
@@ -90,7 +91,7 @@ int validateAdminUser(char * username){
     }
 
     for(int i = 0 ; i < usersStruct->count; i ++){
-        if(strcmp(usersStruct->users[i].username, username) == 0 && usersStruct->users[i].isAdmin == ADMIN_USER)
+        if(strcmp(usersStruct->users[i].username, username) == 0 && usersStruct->users[i].isAdmin == ADMIN_USER && usersStruct->users[i].isConnected == IS_DISCONNECTED)
             return VALID_CREDENTIALS;
     }
 
@@ -103,8 +104,10 @@ int validateAdminCredentials(char * username, char * password){
 
 
     for(int i = 0; i < usersStruct->count; i++){
-        if(strcmp(usersStruct->users[i].username, username) == 0 && strcmp(usersStruct->users[i].password, password) == 0 && usersStruct->users[i].isAdmin == ADMIN_USER)
+        if(strcmp(usersStruct->users[i].username, username) == 0 && strcmp(usersStruct->users[i].password, password) == 0 && usersStruct->users[i].isAdmin == ADMIN_USER && usersStruct->users[i].isConnected == IS_DISCONNECTED){
+            usersStruct->users[i].isConnected = IS_CONNECTED;
             return VALID_CREDENTIALS;
+        }
     }
 
     return INVALID_CREDENTIALS;
@@ -116,11 +119,20 @@ int validateUser(char * username){
     }
 
     for(int i = 0 ; i < usersStruct->count; i ++){
-        if(strcmp(usersStruct->users[i].username, username) == 0 )
+        if(strcmp(usersStruct->users[i].username, username) == 0 && usersStruct->users[i].isConnected == IS_DISCONNECTED)
             return VALID_CREDENTIALS;
     }
 
     return INVALID_CREDENTIALS;
+}
+
+void disconnectUser(char * username){
+    for(int i = 0; i < usersStruct->count; i++){
+        if(strcmp(usersStruct->users[i].username, username) == 0){
+            usersStruct->users[i].isConnected = false;
+            return;
+        }
+    }
 }
 
 // Busca un usuario en la estructura
@@ -129,8 +141,10 @@ int validateUserCredentials(char * username, char * password){
         return INVALID_CREDENTIALS;
 
     for(int i = 0; i < usersStruct->count; i++)
-        if(strcmp(usersStruct->users[i].username, username) == 0 && strcmp(usersStruct->users[i].password, password) == 0)
+        if(strcmp(usersStruct->users[i].username, username) == 0 && strcmp(usersStruct->users[i].password, password) == 0 && usersStruct->users[i].isConnected == IS_DISCONNECTED){
+            usersStruct->users[i].isConnected = IS_CONNECTED;
             return VALID_CREDENTIALS;
+        }
 
     return INVALID_CREDENTIALS;
 }

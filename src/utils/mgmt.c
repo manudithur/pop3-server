@@ -63,7 +63,10 @@ void freeAllMgmt(const unsigned state, struct selector_key * key){
     client_data * data = ATTACHMENT(key);
     printf("INFO: Socket %d - freeing memory\n", data->fd);
     parser_destroy(data->parser);
-    free(data->username);
+    if (data->username != NULL){
+        disconnectUser(data->username);
+        free(data->username);
+    }
     data->parser = NULL;
 
     free(data);

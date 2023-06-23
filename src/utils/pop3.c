@@ -84,10 +84,6 @@ void unregisterHandler(const unsigned state, struct selector_key * key){
     writeCount = send(data->fd, writeBuffer, writeLimit, MSG_NOSIGNAL);
     stats_update(writeCount,0,0);
 
-    if (writeCount <= 0) {
-        return;
-    }
-
     buffer_read_adv(&data->wbStruct, writeCount);
     selector_set_interest_key(key, OP_NOOP);
 
@@ -101,6 +97,7 @@ void freeAllPop3(const unsigned state, struct selector_key * key){
     client_data * data = ATTACHMENT(key);
     printf("INFO: Socket %d - freeing memory\n", data->fd);
     if (data->username != NULL){
+        disconnectUser(data->username);
         free(data->username);
     }
     free(data->emailDeleted);
