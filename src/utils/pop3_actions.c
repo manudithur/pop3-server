@@ -138,7 +138,7 @@ unsigned list_handler(selector_key *key){
         return ERROR_STATE;
     }
     size_t maxPathLength = PATH_MAX_LENGTH + sizeof(entry->d_name);
-    snprintf(resultBuffer, sizeof(resultBuffer), "+OK LIST\n");
+    snprintf(resultBuffer, sizeof(resultBuffer), "+OK LIST\r\n");
     while ((entry = readdir(directory)) != NULL) {
         char filePath[maxPathLength];
         snprintf(filePath, maxPathLength, "%s/%s", dirPath, entry->d_name);
@@ -146,13 +146,13 @@ unsigned list_handler(selector_key *key){
             if (S_ISREG(fileStat.st_mode)) {
                 if (data->emailDeleted[index++] == false){
                     count++;
-                    snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer), "%d %ld\n", count, fileStat.st_size);
+                    snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer), "%d %ld\r\n", count, fileStat.st_size);
                 }
 
             }
         }
     }
-    snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer), "\r\n");
+    snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer), ".\r\n");
     closedir(directory);
 //    snprintf(resultBuffer + strlen(resultBuffer), sizeof(resultBuffer), "\r\n");
 
